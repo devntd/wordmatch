@@ -72,8 +72,6 @@ module.exports = function (io) {
                         });
                     }
                     console.log(a);
-
-
                 });
                 // disconnect
                 socket.on('disconnect', function () {
