@@ -14,24 +14,34 @@ var minScore = 0, playerHighScore = 0;
         $(window).scrollTop($('.game-control').offset().top);
     });
 
-    // Setting
-    $('#setting-save').on('touchstart, click', function () {
-        var settings = {
-            gamePlay: $("input:checked").val(),
-            playerNumber: $('input[type=radio][name=inlineRadioOptions]:checked').val(),
-            playerName: $('#name-player').val()
-        };
-        $.post('/setting', settings, function (data) {
-            $(location).attr('href', 'http://wordmatch.org:4100/');
-        });
-    });
-
     // Tooltip
     $('.tooltip').tooltipster({
         animation: 'fade',
         delay: 200,
         theme: 'tooltipster-shadow',
         position: 'bottom-left'
+    });
+
+    // Setting
+    $('#setting-save').on('touchstart, click', function () {
+        var settings = {
+            gamePlay: $('input[type=radio][name=optionsRadios]:checked').val(),
+            playerNumber: $('input[type=radio][name=inlineRadioOptions]:checked').val(),
+            playerName: $('#name-player').val()
+        };
+
+        if ((settings.gamePlay === 'multiplayer' && typeof settings.playerName === 'string' && settings.playerName.length >= 3) || settings.gamePlay !== 'multiplayer') {
+            $('#name-player-tooltip').tooltipster('hide');
+            $.post('/setting', settings, function (data) {
+                $(location).attr('href', 'http://wordmatch.org:4100');
+            });
+        } else if (settings.gamePlay === 'multiplayer' && (typeof settings.playerName !== 'string' || settings.playerName < 3)) {
+            $('#name-player-tooltip').tooltipster('content', 'Please enter your name with at least 3 letters').tooltipster('show');
+        }
+    });
+
+    $('#name-player').keyup(function (e) {
+        $('#name-player-tooltip').tooltipster('hide');
     });
 
     // Social share
@@ -62,6 +72,8 @@ var minScore = 0, playerHighScore = 0;
 
     $('.game-settings').on('shown.bs.modal', function () {
         if ($.cookie("playerName") !== 'Player') $('#name-player').val($.cookie("playerName"));
+    }).on('hidden.bs.modal', function () {
+        $('#name-player-tooltip').tooltipster('hide');
     });
 
     // Update score board
