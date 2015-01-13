@@ -21,7 +21,7 @@ var socket;
         socketId = socket.io.engine.id;
     });
 
-    socket.on('players changed',function(players){
+    socket.on('players changed', function (players) {
 
     });
 
@@ -36,7 +36,6 @@ var socket;
 
         }
     });
-
 
 
     socket.on('send result', function (nextId, lastLetter, status) {
