@@ -65,13 +65,18 @@ module.exports = function (io) {
                     //console.log(players);
                     socket.join('phi');
                     socket.emit('update rooms', rooms, 'phi');
+                    socket.emit('players', players);
                     var a = io.nsps['/'].adapter.rooms['phi'];
                     if (Object.keys(a).length >= 2) {
                         socket.on('play game', function (data) {
-                            io.sockets.in(socket.room).emit('update rooms', socket.id, data);
+                            //io.sockets.in(socket.room).emit('update rooms', socket.id, data);
+                            var idFirst = socket.id;
+                            io.sockets.in(socket.room).emit('let play', idFirst);
                         });
                     }
-                    console.log(a);
+                    socket.on('first play', function (data) {
+                        console.log(data);
+                    });
                 });
                 // disconnect
                 socket.on('disconnect', function () {
