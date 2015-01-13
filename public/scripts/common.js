@@ -29,7 +29,6 @@ var minScore = 0, playerHighScore = 0;
             playerNumber: $('input[type=radio][name=inlineRadioOptions]:checked').val(),
             playerName: $('#name-player').val()
         };
-
         if ((settings.gamePlay === 'multiplayer' && typeof settings.playerName === 'string' && settings.playerName.length >= 3) || settings.gamePlay !== 'multiplayer') {
             $('#name-player-tooltip').tooltipster('hide');
             $.post('/setting', settings, function (data) {
