@@ -32,7 +32,7 @@ var minScore = 0, playerHighScore = 0;
 
         if ((settings.gamePlay === 'multiplayer' && typeof settings.playerName === 'string' && settings.playerName.length >= 3) || settings.gamePlay !== 'multiplayer') {
             $('#name-player-tooltip').tooltipster('hide');
-            $.post('/setting', settings, function (data) {
+            $.post('/setting', settings, function () {
                 $(location).attr('href', 'http://wordmatch.org:4100');
             });
         } else if (settings.gamePlay === 'multiplayer' && (typeof settings.playerName !== 'string' || settings.playerName < 3)) {
@@ -40,7 +40,7 @@ var minScore = 0, playerHighScore = 0;
         }
     });
 
-    $('#name-player').keyup(function (e) {
+    $('#name-player').keyup(function () {
         $('#name-player-tooltip').tooltipster('hide');
     });
 
