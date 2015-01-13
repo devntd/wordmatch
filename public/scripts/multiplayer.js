@@ -30,6 +30,7 @@ var socket;
         if (firstId == socketId) {
             // handle anything..................
 
+
             // get Word from word_text
             var word;
             socket.emit('send word', word);
