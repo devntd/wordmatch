@@ -1,25 +1,12 @@
 /**
  * Created by dung on 12/25/2014.
  */
-    // Global variables
-CHAR_CODE_A = 'a'.charCodeAt(0);
-CHAR_CODE_X = 'x'.charCodeAt(0);
-CHAR_CODE_Z = 'z'.charCodeAt(0);
-
-var SECONDS_PER_ROUND = 10;
-
-var char = {
-    current: 0,
-    next: 0
-};
-
-var countDownTimeout, inRoundFlag = false;
-var passedWords = [], score = 0, timeRemaining;
+var score = 0;
 var socket;
-
 (function ($) {
     socket = io.connect('http://wordmatch.org:4100');
-
+    var socketId;
+    console.log(socketId);
     // Init slide
     var bxSlider = $('.game_content').bxSlider({
         slideWidth: 600,
@@ -30,30 +17,28 @@ var socket;
         autoDelay: 200
     });
     $('#start-game').on('touchstart, click', function () {
-
         socket.emit('join game');
+        socketId = socket.io.engine.id;
     });
-    $('#word_text').keyup(function (e) {
-        if (e.which == 13) {
-            var text = $('#word_text').val();
-            socket.emit('play game', text);
+
+    socket.on('play game', function (players, firstId, firstLetter) {
+        // Check idFirst with socket.id
+        if (firstId == socketId) {
+            // handle anything..................
+
+            // get Word from word_text
+            var word;
+            socket.emit('send word', word);
+
         }
     });
 
-    socket.on('update rooms', function (data1, data2) {
-        console.log('Socket: ' + data1 + ': ' + data2);
+    socket.on('send result', function (nextId, lastLetter, status) {
+        // handle anything...............
+
+        var word;
+        socket.emit('send word', word);
     });
 
-    socket.on('let play', function (data) {
-        console.log('socket client: ' + socket.io.engine.id);
-        if (socket.io.engine.id == data) {
-            socket.emit('first play', 'Da bat dau' + socket.io.engine.id);
-        }
-    });
-
-    // x2
-    function getInput() {
-        return $('#word_text').val().trim().toLowerCase();
-    }
-
+    socket.emit('typing', 'Word is typing');
 })(jQuery);
