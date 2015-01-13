@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+<head>
+    <% include templates/head.ejs %>
+</head>
+<body>
+<% include templates/header.ejs %>
+<div class="wrap">
+    <input id="name" type="text" class="form-control" placeholder="Text input">
+    <button type="submit" class="btn btn-default" id="bttName">Start</button>
+</div>
+<% include templates/scripts.ejs %>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/scripts/game-mutilplayer.js"></script>
+</body>
+</html>
