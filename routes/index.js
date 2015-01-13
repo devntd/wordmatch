@@ -87,7 +87,6 @@ module.exports = function (io) {
                         room[socket.id] = player;
                         rooms[id] = room;
 
-
                     }
                 });
 
