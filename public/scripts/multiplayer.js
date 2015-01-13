@@ -26,7 +26,7 @@ var socket;
     });
 
     socket.on('update rooms', function (data1, data2) {
-        console.log(data2);
+        console.log('Socket: ' + data1 + ': ' + data2);
     });
 
 })(jQuery);
