@@ -17,8 +17,8 @@ var socket;
         autoDelay: 200
     });
     $('#start-game').on('touchstart, click', function () {
-        socket.emit('join game');
         socketId = socket.io.engine.id;
+        socket.emit('join game');
     });
 
     socket.on('players changed', function (players) {

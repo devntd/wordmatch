@@ -78,7 +78,9 @@ module.exports = function (io) {
                 //        console.log(data);
                 //    });
                 //});
+                socket.on('join game', function () {
 
+                });
 
 
                 // disconnect
