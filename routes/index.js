@@ -56,7 +56,7 @@ module.exports = function (io) {
             })
         } else {
             // Variable multi-player
-            var rooms = ['phi'];
+            var rooms = {};
             var players = {};
             io.on("connection", function (socket) {
                 //socket.on('join game', function () {
@@ -78,8 +78,17 @@ module.exports = function (io) {
                 //        console.log(data);
                 //    });
                 //});
-                socket.on('join game', function () {
+                socket.on('join game', function (name) {
+                    if (_.empty(rooms)) {
+                        var id = uuid.v4();
+                        socket.room = id;
+                        var player = {'name': name, 'status': 1};
+                        var room = {};
+                        room[socket.id] = player;
+                        rooms[id] = room;
 
+
+                    }
                 });
 
 
