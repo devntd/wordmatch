@@ -56,9 +56,32 @@ module.exports = function (io) {
             })
         } else {
             // Variable multi-player
-            var rooms = {};
+            //var rooms = {};
+            var rooms = {
+                '223aca0a-8833-4f6c-874b-bf58e5a94cc5': {
+                    SEY0YicTfM86WaOBAAAB: {
+                        name: 'dung',
+                        status: 1
+                    }
+                },
+                '223aca0a-8833-4f6c-874b-aadadadad': {
+                    SEY0YicTfM86WaOBAADD: {
+                        name: 'manh',
+                        status: 1
+                    },
+                    SEY0YicTfM86WaOBAADE: {
+                        name: 'manh',
+                        status: 1
+                    }
+                }
+            };
+            for (var key in rooms) {
+                var obj = rooms[key];
+                console.log(_.size(obj));
+            }
             var players = {};
             io.on("connection", function (socket) {
+
                 //socket.on('join game', function () {
                 //    socket.room = 'phi';
                 //    players[socket.id] = socket.id;
@@ -86,7 +109,11 @@ module.exports = function (io) {
                         var room = {};
                         room[socket.id] = player;
                         rooms[id] = room;
+                    } else {
+                        for (var key in rooms) {
+                            var obj = rooms[key];
 
+                        }
                     }
                 });
 
