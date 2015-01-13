@@ -15,9 +15,6 @@ module.exports = function (io) {
         playerName: 'Player'
     };
 
-    // Variable multi-player
-    var rooms = ['phi'];
-    var players = {};
 
     // Home page
     router.get('/', function (req, res) {
@@ -58,26 +55,32 @@ module.exports = function (io) {
                 playerName: req.session.playerName
             })
         } else {
+            // Variable multi-player
+            var rooms = ['phi'];
+            var players = {};
             io.on("connection", function (socket) {
-                socket.on('join game', function () {
-                    socket.room = 'phi';
-                    players[socket.id] = socket.id;
-                    //console.log(players);
-                    socket.join('phi');
-                    socket.emit('update rooms', rooms, 'phi');
-                    socket.emit('players', players);
-                    var a = io.nsps['/'].adapter.rooms['phi'];
-                    if (Object.keys(a).length >= 2) {
-                        socket.on('play game', function (data) {
-                            //io.sockets.in(socket.room).emit('update rooms', socket.id, data);
-                            var idFirst = socket.id;
-                            io.sockets.in(socket.room).emit('let play', idFirst);
-                        });
-                    }
-                    socket.on('first play', function (data) {
-                        console.log(data);
-                    });
-                });
+                //socket.on('join game', function () {
+                //    socket.room = 'phi';
+                //    players[socket.id] = socket.id;
+                //    //console.log(players);
+                //    socket.join('phi');
+                //    socket.emit('update rooms', rooms, 'phi');
+                //    socket.emit('players', players);
+                //    var a = io.nsps['/'].adapter.rooms['phi'];
+                //    if (Object.keys(a).length >= 2) {
+                //        socket.on('play game', function (data) {
+                //            //io.sockets.in(socket.room).emit('update rooms', socket.id, data);
+                //            var idFirst = socket.id;
+                //            io.sockets.in(socket.room).emit('let play', idFirst);
+                //        });
+                //    }
+                //    socket.on('first play', function (data) {
+                //        console.log(data);
+                //    });
+                //});
+
+
+
                 // disconnect
                 socket.on('disconnect', function () {
                 });

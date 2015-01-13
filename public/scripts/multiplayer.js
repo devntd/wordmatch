@@ -21,6 +21,10 @@ var socket;
         socketId = socket.io.engine.id;
     });
 
+    socket.on('players changed',function(players){
+
+    });
+
     socket.on('play game', function (players, firstId, firstLetter) {
         // Check idFirst with socket.id
         if (firstId == socketId) {
@@ -32,6 +36,8 @@ var socket;
 
         }
     });
+
+
 
     socket.on('send result', function (nextId, lastLetter, status) {
         // handle anything...............
