@@ -29,8 +29,8 @@ var socket;
     });
 
     socket.on('players changed', function (players) {
-        $.each(players, function(index, player) {
-            $('.player-' + index).html(player.name).addClass(player.socketId);
+        $.each(players, function (index, player) {
+            $('.player-' + (index + 1)).html(player.name).addClass(player.socketId);
         });
     });
 

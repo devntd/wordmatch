@@ -152,12 +152,11 @@ module.exports = function (io) {
 
     io.on("connection", function (socket) {
         socket.on('join game', function (name) {
-            var player;
+            var player = {'socketId': socket.id, 'name': name, 'status': 1};
             if (_.isEmpty(rooms)) {
                 var id = uuid.v4();
                 socket.room = id;
                 socket.join(socket.room);
-                player = {'socketId': socket.id, 'name': name, 'status': 1};
                 var room = [];
                 room.push(player);
                 rooms[id] = room;
@@ -168,12 +167,11 @@ module.exports = function (io) {
                         if (_.size(obj) < 4) {
                             socket.room = key;
                             socket.join(socket.room);
-                            player = {'socketId': socket.id, 'name': name, 'status': 1};
                             obj.push(player);
                             //console.log(obj[0].socketId);
                             io.sockets.in(socket.room).emit('players changed', obj);
                             if (_.size(obj) == 4) {
-                                io.sockets.in(socket.room).emit('play game', key, obj, obj[0].socketId, randomChar());
+                                io.sockets.in(socket.room).emit('play game', key, obj, randomChar());
                             }
                             break;
                         }
@@ -182,18 +180,17 @@ module.exports = function (io) {
             }
         });
 
-        socket.on('send word', function (word) {
+        socket.on('send word', function (key, obj, word) {
+            Words.findOne({'word': new RegExp('^' + word + '$', "i")}, function (err, word) {
+                if (err) {
+                    return handleError(err);
+                } else if (word) {
+                    var lastLetter = word.slice(-1);
+                    io.sockets.in(key).emit('send result', key, obj, lastLetter);
+                } else {
 
-            //Words.findOne({'word': new RegExp('^' + word + '$', "i")}, function (err, word) {
-            //    if (err) {
-            //        return handleError(err);
-            //    } else if (word) {
-            //        res.send(word);
-            //
-            //    } else {
-            //        res.send(word);
-            //    }
-            //});
+                }
+            });
         });
 
         // disconnect
