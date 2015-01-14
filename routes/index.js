@@ -173,7 +173,7 @@ module.exports = function (io) {
                             //console.log(obj[0].socketId);
                             io.sockets.in(socket.room).emit('players changed', obj);
                             if (_.size(obj) == 4) {
-                                io.sockets.in(socket.room).emit('play game', key, obj[0].socketId, randomChar());
+                                io.sockets.in(socket.room).emit('play game', key, obj, obj[0].socketId, randomChar());
                             }
                             break;
                         }
