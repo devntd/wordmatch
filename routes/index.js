@@ -56,29 +56,29 @@ module.exports = function (io) {
             })
         } else {
             // Variable multi-player
-            //var rooms = {};
-            var rooms = {
-                '223aca0a-8833-4f6c-874b-bf58e5a94cc5': {
-                    SEY0YicTfM86WaOBAAAB: {
-                        name: 'dung',
-                        status: 1
-                    }
-                },
-                '223aca0a-8833-4f6c-874b-aadadadad': {
-                    SEY0YicTfM86WaOBAADD: {
-                        name: 'manh',
-                        status: 1
-                    },
-                    SEY0YicTfM86WaOBAADE: {
-                        name: 'manh',
-                        status: 1
-                    }
-                }
-            };
-            for (var key in rooms) {
-                var obj = rooms[key];
-                console.log(_.size(obj));
-            }
+            var rooms = {};
+            //var rooms = {
+            //    '223aca0a-8833-4f6c-874b-bf58e5a94cc5': {
+            //        SEY0YicTfM86WaOBAAAB: {
+            //            name: 'dung',
+            //            status: 1
+            //        }
+            //    },
+            //    '223aca0a-8833-4f6c-874b-aadadadad': {
+            //        SEY0YicTfM86WaOBAADD: {
+            //            name: 'manh',
+            //            status: 1
+            //        },
+            //        SEY0YicTfM86WaOBAADE: {
+            //            name: 'manh',
+            //            status: 1
+            //        }
+            //    }
+            //};
+            //for (var key in rooms) {
+            //    var obj = rooms[key];
+            //    console.log(_.size(obj));
+            //}
             var players = {};
             io.on("connection", function (socket) {
 
@@ -111,19 +111,28 @@ module.exports = function (io) {
                         rooms[id] = room;
                     } else {
                         for (var key in rooms) {
-                            var obj = rooms[key];
-                            if (_.size(obj) < 4) {
-                                var player = {'name': name, 'status': 1};
-                                obj[socket.id] = player;
-                                socket.broadcast.to(key).emit('players changed', obj);
-                                //if (_.size(obj) == 4) {
-                                //
-                                //}
-                                console.log(obj);
-                                break;
+                            if (rooms.hasOwnProperty(key)) {
+                                var obj = rooms[key];
+                                if (_.size(obj) < 4) {
+                                    console.log(_.size(obj));
+                                    //socket.room = key;
+                                    var player = {'name': name, 'status': 1};
+                                    obj[socket.id] = player;
+
+                                    console.log(key);
+                                    console.log(rooms);
+                                    //socket.to(key).emit('players changed', obj);
+                                    //if (_.size(obj) == 4) {
+                                    //
+                                    //}
+                                    //console.log(obj);
+                                    break;
+                                }
                             }
                         }
                     }
+                    //console.log(rooms);
+                    //console.log(_.size(rooms));
                 });
 
 
