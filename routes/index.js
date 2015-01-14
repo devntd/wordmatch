@@ -19,147 +19,60 @@ module.exports = function (io) {
     var players = {};
     // Home page
     router.get('/', function (req, res) {
-        // Init cookies and sessions
-        if (req.cookies.gamePlay) {
-            req.session.gamePlay = req.cookies.gamePlay;
-        } else {
-            req.session.gamePlay = setting.gamePlay;
-            res.cookie('gamePlay', setting.gamePlay);
-        }
+            // Init cookies and sessions
+            if (req.cookies.gamePlay) {
+                req.session.gamePlay = req.cookies.gamePlay;
+            } else {
+                req.session.gamePlay = setting.gamePlay;
+                res.cookie('gamePlay', setting.gamePlay);
+            }
 
-        if (req.cookies.playerNumber) {
-            req.session.playerNumber = req.cookies.playerNumber;
-        } else {
-            req.session.playerNumber = setting.playerNumber;
-            res.cookie('playerNumber', setting.playerNumber);
-        }
+            if (req.cookies.playerNumber) {
+                req.session.playerNumber = req.cookies.playerNumber;
+            } else {
+                req.session.playerNumber = setting.playerNumber;
+                res.cookie('playerNumber', setting.playerNumber);
+            }
 
-        if (req.cookies.playerName) {
-            req.session.playerName = req.cookies.playerName;
-        } else {
-            req.session.playerName = setting.playerName;
-            res.cookie('playerName', setting.playerName);
-        }
+            if (req.cookies.playerName) {
+                req.session.playerName = req.cookies.playerName;
+            } else {
+                req.session.playerName = setting.playerName;
+                res.cookie('playerName', setting.playerName);
+            }
 
-        if (req.session.gamePlay === 'random') {
-            res.render('index', {
-                title: 'Word Match - Random',
-                gamePlay: req.session.gamePlay,
-                playerNumber: req.session.playerNumber,
-                playerName: req.session.playerName
-            })
-        } else if (req.session.gamePlay === 'normal') {
-            res.render('index', {
-                title: 'Word Match - Normal',
-                gamePlay: req.session.gamePlay,
-                playerNumber: req.session.playerNumber,
-                playerName: req.session.playerName
-            })
-        } else {
-            // Variable multi-player
-
-            //var rooms = {
-            //    '223aca0a-8833-4f6c-874b-bf58e5a94cc5': {
-            //        SEY0YicTfM86WaOBAAAB: {
-            //            name: 'dung',
-            //            status: 1
-            //        }
-            //    },
-            //    '223aca0a-8833-4f6c-874b-aadadadad': {
-            //        SEY0YicTfM86WaOBAADD: {
-            //            name: 'manh',
-            //            status: 1
-            //        },
-            //        SEY0YicTfM86WaOBAADE: {
-            //            name: 'manh',
-            //            status: 1
-            //        }
-            //    }
-            //};
-            //for (var key in rooms) {
-            //    var obj = rooms[key];
-            //    console.log(_.size(obj));
-            //}
-
-            io.on("connection", function (socket) {
-
-                //socket.on('join game', function () {
-                //    socket.room = 'phi';
-                //    players[socket.id] = socket.id;
-                //    //console.log(players);
-                //    socket.join('phi');
-                //    socket.emit('update rooms', rooms, 'phi');
-                //    socket.emit('players', players);
-                //    var a = io.nsps['/'].adapter.rooms['phi'];
-                //    if (Object.keys(a).length >= 2) {
-                //        socket.on('play game', function (data) {
-                //            //io.sockets.in(socket.room).emit('update rooms', socket.id, data);
-                //            var idFirst = socket.id;
-                //            io.sockets.in(socket.room).emit('let play', idFirst);
-                //        });
-                //    }
-                //    socket.on('first play', function (data) {
-                //        console.log(data);
-                //    });
-                //});
-                socket.on('join game', function (name) {
-                    if (_.isEmpty(rooms)) {
-                        var id = uuid.v4();
-                        socket.room = id;
-                        socket.join(socket.room);
-                        var player = {'name': name, 'status': 1};
-                        var room = {};
-                        room[socket.id] = player;
-                        rooms[id] = room;
-                    } else {
-                        for (var key in rooms) {
-                            if (rooms.hasOwnProperty(key)) {
-                                var obj = rooms[key];
-                                if (_.size(obj) < 4) {
-                                    console.log(_.size(obj));
-                                    socket.room = key;
-                                    socket.join(socket.room);
-                                    console.log(socket);
-                                    var player = {'name': name, 'status': 1};
-                                    obj[socket.id] = player;
-                                    console.log(key);
-                                    console.log(rooms);
-                                    //socket.broadcast.to(key).emit('players changed', obj);
-                                    io.sockets.in(key).emit('players changed', obj);
-                                    //if (_.size(obj) == 4) {
-                                    //
-                                    //}
-                                    //console.log(obj);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    //console.log(rooms);
-                    //console.log(_.size(rooms));
+            if (req.session.gamePlay === 'random') {
+                res.render('index', {
+                    title: 'Word Match - Random',
+                    gamePlay: req.session.gamePlay,
+                    playerNumber: req.session.playerNumber,
+                    playerName: req.session.playerName
+                })
+            } else if (req.session.gamePlay === 'normal') {
+                res.render('index', {
+                    title: 'Word Match - Normal',
+                    gamePlay: req.session.gamePlay,
+                    playerNumber: req.session.playerNumber,
+                    playerName: req.session.playerName
+                })
+            } else {
+                res.render('index', {
+                    title: 'Word Match - Multiplayer',
+                    gamePlay: req.session.gamePlay,
+                    playerNumber: req.session.playerNumber,
+                    playerName: req.session.playerName
                 });
-
-
-                // disconnect
-                socket.on('disconnect', function () {
-                });
-            });
-            res.render('index', {
-                title: 'Word Match - Multiplayer',
-                gamePlay: req.session.gamePlay,
-                playerNumber: req.session.playerNumber,
-                playerName: req.session.playerName
-            });
+            }
         }
-    });
+    );
 
 
-    // Result page
+// Result page
     router.get('/result', function (req, res) {
         res.redirect('/');
     });
 
-    // Social share
+// Social share
     router.get('/result/:info', function (req, res) {
         // base64 decode
         var info = new Buffer(req.params.info, 'base64').toString('ascii').split('-');
@@ -171,7 +84,7 @@ module.exports = function (io) {
         });
     });
 
-    // Check input word
+// Check input word
     router.post('/check-word', function (req, res) {
         var txtWord = req.body.submitWord;
         Words.findOne({'word': new RegExp('^' + txtWord + '$', "i")}, function (err, word) {
@@ -187,7 +100,7 @@ module.exports = function (io) {
         });
     });
 
-    // Set cookies
+// Set cookies
     router.post('/setting', function (req, res) {
         res.cookie('gamePlay', req.body.gamePlay);
         res.cookie('playerNumber', req.body.playerNumber);
@@ -195,7 +108,7 @@ module.exports = function (io) {
         res.send(req.body.gamePlay);
     });
 
-    // Score board
+// Score board
     router.post('/add-score', function (req, res) {
         if (typeof req.body.name === 'string' && req.body.name !== '' && req.body.score !== '0') {
             var rankPlayer = new Ranks({
@@ -229,5 +142,51 @@ module.exports = function (io) {
     });
 
 
+    function randomChar() {
+        var numberRan;
+        do {
+            numberRan = Math.floor(97 + Math.random() * 25);
+        } while (numberRan === 120);
+        return numberRan;
+    }
+
+    io.on("connection", function (socket) {
+        socket.on('join game', function (name) {
+            if (_.isEmpty(rooms)) {
+                var id = uuid.v4();
+                socket.room = id;
+                socket.join(socket.room);
+                var player = {'socketId': socket.id, 'name': name, 'status': 1};
+                var room = [];
+                room.push(player);
+                rooms[id] = room;
+            } else {
+                for (var key in rooms) {
+                    if (rooms.hasOwnProperty(key)) {
+                        var obj = rooms[key];
+                        if (_.size(obj) < 4) {
+                            socket.room = key;
+                            socket.join(socket.room);
+                            var player = {'socketId': socket.id, 'name': name, 'status': 1};
+                            obj.push(player);
+                            console.log(obj[0].socketId);
+                            io.sockets.in(socket.room).emit('players changed', obj);
+                            if (_.size(obj) == 4) {
+                                io.sockets.in(socket.room).emit('play game', obj[0].socketId, randomChar());
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+
+
+        // disconnect
+        socket.on('disconnect', function () {
+        });
+    });
+
     return router;
-};
+}
+;
