@@ -1,8 +1,18 @@
 /**
- * Created by dung on 12/25/2014.
+ * Variables
  */
-var score = 0;
 var socket;
+
+// Global variables
+CHAR_CODE_A = 'a'.charCodeAt(0);
+CHAR_CODE_X = 'x'.charCodeAt(0);
+CHAR_CODE_Z = 'z'.charCodeAt(0);
+
+var SECONDS_PER_ROUND = 10;
+
+var countDownTimeout, inRoundFlag = false;
+var passedWords = [], score = 0, timeRemaining;
+
 (function ($) {
     socket = io.connect('http://wordmatch.org:4100');
     var socketId;
@@ -16,6 +26,10 @@ var socket;
         controls: false,
         autoDelay: 200
     });
+
+    /**
+     * Socket handling
+     */
 
     $('.start-game-play').on('touchstart, click', function () {
         socketId = socket.io.engine.id;
@@ -34,27 +48,106 @@ var socket;
         });
     });
 
-    socket.on('play game', function (firstId, firstLetter) {
+    socket.on('play game', function (roomName, players, firstLetter) {
         // Hide play button
         $('.game_load').css('z-index', '0');
 
         // Check idFirst with socket.id
-        if (firstId == socketId) {
-            // handle anything..................
+        var nowPlayer = players.shift();
+        if (nowPlayer.socketId == socketId) {
 
-            // get Word from word_text
-            var word;
-            socket.emit('send word', word);
         }
     });
 
 
+
     socket.on('send result', function (nextId, lastLetter, status) {
         // handle anything...............
-
-        var word;
-        socket.emit('send word', word);
     });
 
     socket.emit('typing', 'Word is typing');
+
+    /**
+     * Client handling
+     */
+
+    // Send word to server
+    $('#word_text').keyup(function (e) {
+        var currentInput = getInput();
+        if (inRoundFlag === true && e.which == 13 && currentInput !== '' && currentInput.length > 1) {
+            socket.emit('send word');
+        } else if (inRoundFlag === true && e.which == 13 && currentInput === '') {
+            $('#input-tooltip').tooltipster('content', 'Don\'t leave this input empty').tooltipster('show');
+        } else if (inRoundFlag === true && e.which == 13 && currentInput.length < 2) {
+            $('#input-tooltip').tooltipster('content', 'Word must contains at least 2 letters and not yet be submitted').tooltipster('show');
+        } else {
+            $('#input-tooltip').tooltipster('hide');
+        }
+    });
+
+    // x3
+    function checkInput(text) {
+
+    }
+
+    // x3
+    function startRound() {
+        // Each time start
+        var currentSlide = bxSlider.getCurrentSlide();
+        $('.slide:nth-child(' + (currentSlide + 2) + ')').html(String.fromCharCode(char.current)).removeClass(function () {
+            if (currentSlide === 0) return 'result-true';
+        });
+        setTimeout(function () {
+            $('.slide:nth-child(' + (currentSlide + 3) + ')').html(String.fromCharCode(char.next)).removeClass(function () {
+                if (currentSlide === 0) return 'result-true';
+            });
+        }, 1000);
+
+        $('#word_text').focus().val('');
+        inRoundFlag = true;
+        startCountDown(SECONDS_PER_ROUND);
+    }
+
+    // x3
+    function startCountDown(time) {
+        if (typeof time == 'number') {
+            // Count down
+            var seconds = parseInt(time);
+            $('.mini').html(seconds);
+            if (seconds == 0) {
+                ion.sound.play('bell_ring');
+                endRound();
+                return;
+            }
+            timeRemaining = seconds--;
+            countDownTimeout = setTimeout(function () {
+                if (seconds <= 3) ion.sound.play('tap');
+                startCountDown(seconds);
+            }, 1000);
+        }
+    }
+
+    // x3
+    function endRound() {
+        checkInput(getInput());
+        inRoundFlag = false;
+        clearTimeout(countDownTimeout);
+        $('#word_text').val('').blur();
+        $('#input-tooltip').tooltipster('hide');
+    }
+
+    // x3
+    function getInput() {
+        return $('#word_text').val().trim().toLowerCase();
+    }
+
+    // x3
+    function gameOver(error) {
+        ion.sound.play('wrong_answer');
+        $('.game_load').css('z-index', '888');
+        setTimeout(function () {
+            $('.game_over').modal('show').find('.your-score').html(score);
+        }, 500);
+        console.log(error);
+    }
 })(jQuery);
