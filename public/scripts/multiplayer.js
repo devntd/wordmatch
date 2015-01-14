@@ -6,7 +6,7 @@ var socket;
 (function ($) {
     socket = io.connect('http://wordmatch.org:4100');
     var socketId;
-    console.log(socketId);
+
     // Init slide
     var bxSlider = $('.game_content').bxSlider({
         slideWidth: 600,
@@ -16,9 +16,16 @@ var socket;
         controls: false,
         autoDelay: 200
     });
-    $('#start-game').on('touchstart, click', function () {
+
+    $('.start-game-play').on('touchstart, click', function () {
         socketId = socket.io.engine.id;
         socket.emit('join game', $.cookie('playerName'));
+        if (!$(this).hasClass('stop-game-play')) {
+            $(this).addClass('stop-game-play').html('Stop');
+        } else {
+            $(this).removeClass('stop-game-play').html('Play');
+            socket.emit('exit game');
+        }
     });
 
     socket.on('players changed', function (players) {
@@ -26,15 +33,16 @@ var socket;
     });
 
     socket.on('play game', function (players, firstId, firstLetter) {
+        // Hide play button
+        $('.game_load').css('z-index', '0');
+
         // Check idFirst with socket.id
         if (firstId == socketId) {
             // handle anything..................
 
-
             // get Word from word_text
             var word;
             socket.emit('send word', word);
-
         }
     });
 

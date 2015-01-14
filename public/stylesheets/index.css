@@ -191,28 +191,12 @@ header .navbar-default ul li:hover {
     cursor: pointer;
 }
 
-/*
-.start-game-play {
-    position: absolute;
-    width: 0;
-    left: 32px;
-    top: 16px;
-    height: 0;
-    border-bottom: 30px solid transparent;
-    border-top: 30px solid transparent;
-    border-left: 45px solid #ffffff;
-}
-*/
 .game_load img {
     width: 100%;
 }
 
 .game_play {
     position: relative;
-}
-
-#start-game {
-    border-radius: 100% !important;
 }
 
 .import_text_check {
@@ -237,13 +221,17 @@ header .navbar-default ul li:hover {
 
 .start-game-play {
     cursor: pointer;
-    color: white;
+    color: #ffffff;
     font-size: 28px;
     margin-top: 20px;
     text-align: center;
     padding: 10px;
     font-weight: bold;
     text-shadow: 0 0 3px #fff;
+}
+
+.stop-game-play {
+    color: #FC6E51;
 }
 
 .score span {
@@ -416,7 +404,6 @@ header .navbar-default ul li:hover {
     font-weight: bold;
 }
 
-
 .import_text_check table {
     width: 100%;
     margin-top: 35px;
@@ -440,6 +427,7 @@ header .navbar-default ul li:hover {
     background: none repeat scroll 0 0 rgba(255, 255, 255, 0.5);
     color: #ffffff;
 }
+
 .commentbox > span {
     padding: 10px 10px 0;
     border-radius: 5px 5px 0 0;
@@ -526,9 +514,10 @@ input[name=optionsRadios], input[name=inlineRadioOptions] {
 }
 
 @media (max-width: 767px) {
-    .wrap{
-        margin-top: 0px !important;
+    .wrap {
+        margin-top: 0 !important;
     }
+
     .header2 #logo img {
         width: 100%;
     }
