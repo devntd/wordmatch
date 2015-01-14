@@ -15,7 +15,8 @@ module.exports = function (io) {
         playerName: 'Player'
     };
 
-
+    var rooms = {};
+    var players = {};
     // Home page
     router.get('/', function (req, res) {
         // Init cookies and sessions
@@ -56,7 +57,7 @@ module.exports = function (io) {
             })
         } else {
             // Variable multi-player
-            var rooms = {};
+
             //var rooms = {
             //    '223aca0a-8833-4f6c-874b-bf58e5a94cc5': {
             //        SEY0YicTfM86WaOBAAAB: {
@@ -79,7 +80,7 @@ module.exports = function (io) {
             //    var obj = rooms[key];
             //    console.log(_.size(obj));
             //}
-            var players = {};
+
             io.on("connection", function (socket) {
 
                 //socket.on('join game', function () {
@@ -105,6 +106,7 @@ module.exports = function (io) {
                     if (_.isEmpty(rooms)) {
                         var id = uuid.v4();
                         socket.room = id;
+                        socket.join(socket.room);
                         var player = {'name': name, 'status': 1};
                         var room = {};
                         room[socket.id] = player;
@@ -115,13 +117,15 @@ module.exports = function (io) {
                                 var obj = rooms[key];
                                 if (_.size(obj) < 4) {
                                     console.log(_.size(obj));
-                                    //socket.room = key;
+                                    socket.room = key;
+                                    socket.join(socket.room);
+                                    console.log(socket);
                                     var player = {'name': name, 'status': 1};
                                     obj[socket.id] = player;
-
                                     console.log(key);
                                     console.log(rooms);
-                                    //socket.to(key).emit('players changed', obj);
+                                    //socket.broadcast.to(key).emit('players changed', obj);
+                                    io.sockets.in(key).emit('players changed', obj);
                                     //if (_.size(obj) == 4) {
                                     //
                                     //}
