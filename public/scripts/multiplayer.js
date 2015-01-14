@@ -29,7 +29,7 @@ var socket;
     });
 
     socket.on('players changed', function (players) {
-
+        console.log(players);
     });
 
     socket.on('play game', function (players, firstId, firstLetter) {

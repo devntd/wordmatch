@@ -102,7 +102,7 @@ module.exports = function (io) {
                 //    });
                 //});
                 socket.on('join game', function (name) {
-                    if (_.empty(rooms)) {
+                    if (_.isEmpty(rooms)) {
                         var id = uuid.v4();
                         socket.room = id;
                         var player = {'name': name, 'status': 1};
@@ -112,7 +112,16 @@ module.exports = function (io) {
                     } else {
                         for (var key in rooms) {
                             var obj = rooms[key];
-
+                            if (_.size(obj) < 4) {
+                                var player = {'name': name, 'status': 1};
+                                obj[socket.id] = player;
+                                socket.broadcast.to(key).emit('players changed', obj);
+                                //if (_.size(obj) == 4) {
+                                //
+                                //}
+                                console.log(obj);
+                                break;
+                            }
                         }
                     }
                 });
