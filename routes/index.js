@@ -180,17 +180,20 @@ module.exports = function (io) {
             }
         });
 
-        socket.on('send word', function (key, obj, word) {
-            Words.findOne({'word': new RegExp('^' + word + '$', "i")}, function (err, word) {
-                if (err) {
-                    return handleError(err);
-                } else if (word) {
-                    var lastLetter = word.slice(-1);
-                    io.sockets.in(key).emit('send result', key, obj, lastLetter);
-                } else {
-
-                }
-            });
+        //socket.on('send word', function (key, obj, word) {
+        //    Words.findOne({'word': new RegExp('^' + word + '$', "i")}, function (err, word) {
+        //        if (err) {
+        //            return handleError(err);
+        //        } else if (word) {
+        //            var lastLetter = word.slice(-1);
+        //            io.sockets.in(key).emit('send result', key, obj, lastLetter);
+        //        } else {
+        //
+        //        }
+        //    });
+        //});
+        socket.on('send word', function (word) {
+            console.log(word);
         });
 
         // disconnect

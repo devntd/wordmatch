@@ -9,9 +9,11 @@ CHAR_CODE_X = 'x'.charCodeAt(0);
 CHAR_CODE_Z = 'z'.charCodeAt(0);
 
 var SECONDS_PER_ROUND = 10;
+var SECONDS_PER_START = 3;
 
 var countDownTimeout, inRoundFlag = false;
 var passedWords = [], score = 0, timeRemaining;
+var nowPlayer;
 
 (function ($) {
     socket = io.connect('http://wordmatch.org:4100');
@@ -51,15 +53,14 @@ var passedWords = [], score = 0, timeRemaining;
     socket.on('play game', function (roomName, players, firstLetter) {
         // Hide play button
         $('.game_load').css('z-index', '0');
-
+        startCountDown(SECONDS_PER_START);
+        inRoundFlag = true;
         // Check idFirst with socket.id
-        var nowPlayer = players.shift();
-        if (nowPlayer.socketId == socketId) {
-
-        }
+        nowPlayer = players.shift();
+        //if (nowPlayer.socketId == socketId) {
+        //
+        //}
     });
-
-
 
     socket.on('send result', function (nextId, lastLetter, status) {
         // handle anything...............
@@ -71,17 +72,13 @@ var passedWords = [], score = 0, timeRemaining;
      * Client handling
      */
 
-    // Send word to server
+        // Send word to server
     $('#word_text').keyup(function (e) {
+        console.log(socketId);
         var currentInput = getInput();
-        if (inRoundFlag === true && e.which == 13 && currentInput !== '' && currentInput.length > 1) {
-            socket.emit('send word');
-        } else if (inRoundFlag === true && e.which == 13 && currentInput === '') {
-            $('#input-tooltip').tooltipster('content', 'Don\'t leave this input empty').tooltipster('show');
-        } else if (inRoundFlag === true && e.which == 13 && currentInput.length < 2) {
-            $('#input-tooltip').tooltipster('content', 'Word must contains at least 2 letters and not yet be submitted').tooltipster('show');
-        } else {
-            $('#input-tooltip').tooltipster('hide');
+        if (nowPlayer.socketId == socketId) {
+            console.log('sau on  '+ nowPlayer);
+            socket.emit('send word', currentInput);
         }
     });
 
