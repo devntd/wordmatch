@@ -415,7 +415,12 @@ header .navbar-default ul li:hover {
     padding: 7px 4px;
 }
 
-.import_text_check table td.active {
+table.joined-players td.joined-player {
+    background-color: #3F89AE;
+    border: 2px solid #07608C;
+}
+
+table.joined-players td.active {
     border: 2px solid #ffffff;
     color: #ffffff;
     text-shadow: 0 0 2px #ffffff;

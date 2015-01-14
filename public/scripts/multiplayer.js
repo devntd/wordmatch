@@ -29,10 +29,14 @@ var socket;
     });
 
     socket.on('players changed', function (players) {
-        console.log(players);
+        var i = 1;
+        for (var id in players) {
+            if (players.hasOwnProperty(id)) $('player-' + i).html(players[id].name).addClass(id);
+            i++;
+        }
     });
 
-    socket.on('play game', function (players, firstId, firstLetter) {
+    socket.on('play game', function (firstId, firstLetter) {
         // Hide play button
         $('.game_load').css('z-index', '0');
 
