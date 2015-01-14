@@ -2,13 +2,8 @@
 CHAR_CODE_A = 'a'.charCodeAt(0);
 CHAR_CODE_X = 'x'.charCodeAt(0);
 CHAR_CODE_Z = 'z'.charCodeAt(0);
-
 var SECONDS_PER_ROUND = 10;
-
-var char = {
-    current: 0,
-    next: 0
-};
+var char = {current: 0, next: 0};
 var countDownTimeout, inRoundFlag = false;
 var passedWords = [], score = 0, timeRemaining;
 
@@ -22,7 +17,6 @@ var passedWords = [], score = 0, timeRemaining;
         controls: false,
         autoDelay: 200
     });
-
 
     $('#start-game').on('touchstart, click', function () {
         if (inRoundFlag === false) {
@@ -40,44 +34,6 @@ var passedWords = [], score = 0, timeRemaining;
             startRound();
         }
     });
-
-    // x2
-    $('#word_text').keyup(function (e) {
-        var currentInput = getInput();
-        if (inRoundFlag === true && e.which == 13 && currentInput !== '' && currentInput.length > 1) {
-            endRound();
-        } else if (inRoundFlag === true && e.which == 13 && currentInput === '') {
-            $('#input-tooltip').tooltipster('content', 'Don\'t leave this input empty').tooltipster('show');
-        } else if (inRoundFlag === true && e.which == 13 && currentInput.length < 2) {
-            $('#input-tooltip').tooltipster('content', 'Word must contains at least 2 letters and not yet be submitted').tooltipster('show');
-        } else {
-            $('#input-tooltip').tooltipster('hide');
-        }
-    });
-
-    // x2
-    function startCountDown(time) {
-        if (typeof time == 'number') {
-            // Count down
-            var seconds = parseInt(time);
-            $('.mini').html(seconds);
-            if (seconds == 0) {
-                ion.sound.play('bell_ring');
-                endRound();
-                return;
-            }
-            timeRemaining = seconds--;
-            countDownTimeout = setTimeout(function () {
-                if (seconds <= 3) ion.sound.play('tap');
-                startCountDown(seconds);
-            }, 1000);
-        }
-    }
-
-    // x2
-    function getInput() {
-        return $('#word_text').val().trim().toLowerCase();
-    }
 
     function checkInput(text) {
         // Current slide
@@ -132,6 +88,52 @@ var passedWords = [], score = 0, timeRemaining;
         }
     }
 
+    function nextChar(current) {
+        if (current !== (CHAR_CODE_X - 1) && current !== CHAR_CODE_Z)
+            return current + 1;
+        else if (current === CHAR_CODE_Z)
+            return CHAR_CODE_A;
+        return current + 2;
+    }
+
+    // x2
+    $('#word_text').keyup(function (e) {
+        var currentInput = getInput();
+        if (inRoundFlag === true && e.which == 13 && currentInput !== '' && currentInput.length > 1) {
+            endRound();
+        } else if (inRoundFlag === true && e.which == 13 && currentInput === '') {
+            $('#input-tooltip').tooltipster('content', 'Don\'t leave this input empty').tooltipster('show');
+        } else if (inRoundFlag === true && e.which == 13 && currentInput.length < 2) {
+            $('#input-tooltip').tooltipster('content', 'Word must contains at least 2 letters and not yet be submitted').tooltipster('show');
+        } else {
+            $('#input-tooltip').tooltipster('hide');
+        }
+    });
+
+    // x2
+    function startCountDown(time) {
+        if (typeof time == 'number') {
+            // Count down
+            var seconds = parseInt(time);
+            $('.mini').html(seconds);
+            if (seconds == 0) {
+                ion.sound.play('bell_ring');
+                endRound();
+                return;
+            }
+            timeRemaining = seconds--;
+            countDownTimeout = setTimeout(function () {
+                if (seconds <= 3) ion.sound.play('tap');
+                startCountDown(seconds);
+            }, 1000);
+        }
+    }
+
+    // x2
+    function getInput() {
+        return $('#word_text').val().trim().toLowerCase();
+    }
+
     // x2
     function startRound() {
         // Each time start
@@ -167,13 +169,5 @@ var passedWords = [], score = 0, timeRemaining;
             $('.game_over').modal('show').find('.your-score').html(score);
         }, 500);
         console.log(error);
-    }
-
-    function nextChar(current) {
-        if (current !== (CHAR_CODE_X - 1) && current !== CHAR_CODE_Z)
-            return current + 1;
-        else if (current === CHAR_CODE_Z)
-            return CHAR_CODE_A;
-        return current + 2;
     }
 })(jQuery);
