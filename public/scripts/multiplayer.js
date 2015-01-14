@@ -29,15 +29,10 @@ var socket;
     });
 
     socket.on('players changed', function (players) {
-        console.log(players);
         var i = 1;
         for (var id in players) {
-            if (players.hasOwnProperty(id)) {
-                $('player-' + i).html(players[id].name).addClass(id);
-                console.log(players[id]);
-            }
+            if (players.hasOwnProperty(id)) $('.player-' + i).html(players[id].name).addClass(id);
             i++;
-
         }
     });
 
