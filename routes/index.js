@@ -152,11 +152,12 @@ module.exports = function (io) {
 
     io.on("connection", function (socket) {
         socket.on('join game', function (name) {
+            var player;
             if (_.isEmpty(rooms)) {
                 var id = uuid.v4();
                 socket.room = id;
                 socket.join(socket.room);
-                var player = {'socketId': socket.id, 'name': name, 'status': 1};
+                player = {'socketId': socket.id, 'name': name, 'status': 1};
                 var room = [];
                 room.push(player);
                 rooms[id] = room;
@@ -167,12 +168,12 @@ module.exports = function (io) {
                         if (_.size(obj) < 4) {
                             socket.room = key;
                             socket.join(socket.room);
-                            var player = {'socketId': socket.id, 'name': name, 'status': 1};
+                            player = {'socketId': socket.id, 'name': name, 'status': 1};
                             obj.push(player);
-                            console.log(obj[0].socketId);
+                            //console.log(obj[0].socketId);
                             io.sockets.in(socket.room).emit('players changed', obj);
                             if (_.size(obj) == 4) {
-                                io.sockets.in(socket.room).emit('play game', obj[0].socketId, randomChar());
+                                io.sockets.in(socket.room).emit('play game', key, obj[0].socketId, randomChar());
                             }
                             break;
                         }
@@ -181,6 +182,19 @@ module.exports = function (io) {
             }
         });
 
+        socket.on('send word', function (word) {
+
+            //Words.findOne({'word': new RegExp('^' + word + '$', "i")}, function (err, word) {
+            //    if (err) {
+            //        return handleError(err);
+            //    } else if (word) {
+            //        res.send(word);
+            //
+            //    } else {
+            //        res.send(word);
+            //    }
+            //});
+        });
 
         // disconnect
         socket.on('disconnect', function () {
