@@ -188,5 +188,3 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom;
         console.log(error);
     }
 })(jQuery);
-
-gggdggd
