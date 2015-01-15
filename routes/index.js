@@ -184,6 +184,7 @@ module.exports = function (io) {
                 if (err) {
                     return handleError(err);
                 } else if (word) {
+                    console.log(word);
                     lastChar = wordInput.slice(-1);
                     io.sockets.in(key).emit('send result', key, obj, lastChar);
                 } else {
