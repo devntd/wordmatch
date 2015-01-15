@@ -8,59 +8,24 @@ Array.prototype.doClear = function () {
 /**
  * Filter
  *
- * @param name
  * @constructor
  */
-Filter = function (name) {
-    this.name = name;
-};
-
-Filter.prototype.checkIndexOf = function (text, char) {
-    if (typeof text == 'string' && typeof char == 'string') {
-        return text.toLowerCase().indexOf(char.toLowerCase());
-    }
-    return -1;
+Filter = function () {
 };
 
 Filter.prototype.isObject = function (obj) {
-    if (typeof obj === 'object' && obj !== null) return true;
-    return false;
-};
-
-Filter.prototype.checkWord = function (data) {
-    if (typeof data == 'object') {
-        return alert('Ọbject');
-    } else if (data === '') {
-        return '';
-    }
+    return (typeof obj === 'object' && obj !== null);
 };
 
 Filter.prototype.loadSound = function () {
     ion.sound({
         sounds: [
-            {
-                name: "beer_can_opening"
-            },
-            {
-                name: "bell_ring",
-                volume: 1
-            },
-            {
-                name: "tap",
-                volume: 1,
-                preload: false
-            },
-            {
-                name: "right_answer",
-                volume: 1
-            },
-            {
-                name: "wrong_answer",
-                volume: 1
-            }
-
-        ],
-        path: "/sounds/"
+            {name: "beer_can_opening"},
+            {name: "bell_ring", volume: 1},
+            {name: "tap", volume: 1, preload: false},
+            {name: "right_answer", volume: 1},
+            {name: "wrong_answer", volume: 1}
+        ], path: "/sounds/"
     });
 };
 
@@ -69,17 +34,19 @@ var filter = new Filter();
 /**
  * GamePlay
  *
- * @param name
  * @constructor
  */
-GamePlay = function (name) {
-    this.name = name;
+GamePlay = function () {
 };
 
 var gamePlay = new GamePlay();
 
-Social = function (name) {
-    this.name = name;
+/**
+ * Social
+ *
+ * @constructor
+ */
+Social = function () {
 };
 
 Social.prototype.popupWindow = function (url, title, width, height) {
