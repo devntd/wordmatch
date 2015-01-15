@@ -47,7 +47,7 @@ var passedWords = [], score = 0, timeRemaining;
         // Words errors
         if (text.charCodeAt(0) !== char.current) {
             $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
-            gameOver('First letter does not match! Game Over!');
+            gameOver('First letter does not match! Games Over!');
             return false;
         } else if (passedWords.indexOf(text) !== -1) {
             $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');

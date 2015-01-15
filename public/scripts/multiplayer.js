@@ -87,8 +87,6 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom;
         } else {
             $('#input-tooltip').tooltipster('hide');
         }
-    }).change(function () {
-        //socket.emit('typing', currentRoom, getInput());
     });
 
     socket.on('send typing', function (text) {
@@ -96,6 +94,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom;
             $('#word_text').val(text);
         }
     });
+
 
     // x3
     function checkInput(text) {
