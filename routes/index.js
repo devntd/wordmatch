@@ -178,26 +178,31 @@ module.exports = function (io) {
         });
 
         // Players send their words
-        socket.on('send word', function (key, obj, wordInput) {
-            Words.findOne({'word': new RegExp('^' + wordInput + '$', "i")}, function (err, word) {
+        socket.on('send word', function (roomName, players, sentWord) {
+            Words.findOne({'word': new RegExp('^' + sentWord + '$', "i")}, function (err, queriedWord) {
                 if (err) {
                     return handleError(err);
-                } else if (word) {
-                    console.log(word.toObject());
-                    console.log('Have a word');
-                    var lastLetter = wordInput.slice(-1);
-
-                    console.log(lastLetter);
-                    io.sockets.in(key).emit('send result', key, obj, lastLetter);
                 } else {
-
+                    console.log(queriedWord);
+                    if (!queriedWord) players.pop();
+                    io.sockets.in(roomName).emit('send result', roomName, players, randomChar());
                 }
             });
+        });
+
+        socket.on('typing', function (roomName, text) {
+            console.log(text);
+            //socket.broadcast.to('roomName').emit('send typing', text);
+            io.sockets.in(roomName).emit('send typing', text);
+        });
+        socket.on('exit', function () {
+
         });
 
         // Disconnect
         socket.on('disconnect', function () {
             // sth goes here
+            socket.leave(socket.room);
         });
     });
 

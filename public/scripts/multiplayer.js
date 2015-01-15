@@ -12,7 +12,7 @@ var SECONDS_OF_PENDING = 3;
 
 var countDownTimeout, inRoundFlag = false;
 var passedWords = [], score = 0, timeRemaining;
-var socketID, currentPlayer, currentPlayers = [], currentChar = 0, room;
+var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom;
 
 (function ($) {
     // Init socket
@@ -38,7 +38,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, room;
         } else {
             // Cancel game
             $(this).removeClass('stop-game-play').html('Play');
-            socket.emit('exit game');
+            socket.emit('exit game', currentRoom);
         }
     });
 
@@ -55,24 +55,28 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, room;
         passedWords.doClear();
         inRoundFlag = true;
         // Assign local data
-        room = roomName;
+        currentRoom = roomName;
         currentChar = firstChar;
-        currentPlayer = players.shift();
-        players.push(currentPlayer);
         currentPlayers = players;
+        currentPlayer = currentPlayers[0];
         // Start game
         startRound();
     });
 
-    socket.on('send result', function (nextId, lastLetter, status) {
+    socket.on('send result', function (roomName, players, randomChar) {
         // handle anything...............
+        //console.log('Play game: '+ players);
+        console.log(String.fromCharCode(randomChar));
+        currentChar = randomChar;
+        currentPlayers = players;
+        currentPlayer = currentPlayers[0];
+        startRound();
     });
 
-    socket.emit('typing', getInput());
 
     // Send word to server
     $('#word_text').keyup(function (e) {
-        console.log(socketID);
+        socket.emit('typing', currentRoom, getInput());
         var currentInput = getInput();
         if (currentPlayer.socketId == socketID && inRoundFlag === true && e.which == 13 && currentInput !== '' && currentInput.length > 1) {
             endRound();
@@ -82,6 +86,14 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, room;
             $('#input-tooltip').tooltipster('content', 'Word must contains at least 2 letters and not yet be submitted').tooltipster('show');
         } else {
             $('#input-tooltip').tooltipster('hide');
+        }
+    }).change(function () {
+        //socket.emit('typing', currentRoom, getInput());
+    });
+
+    socket.on('send typing', function (text) {
+        if (currentPlayer.socketId != socketID) {
+            $('#word_text').val(text);
         }
     });
 
@@ -96,7 +108,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, room;
             return false;
         }
         // Words errors
-        if (text.charCodeAt(0) !== char.current) {
+        if (text.charCodeAt(0) !== currentChar) {
             $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
             gameOver('First letter does not match! Games Over!');
             return false;
@@ -108,7 +120,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, room;
 
         // If everything is ok, let's check
         if (typeof text === 'string' && text.length > 1) {
-            socket.emit('send word', room, currentPlayers, text);
+            socket.emit('send word', currentRoom, currentPlayers, text);
         }
     }
 
@@ -126,7 +138,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, room;
          }, 1000);*/
         $('#word_text').focus().val('');
         inRoundFlag = true;
-        startCountDown(SECONDS_PER_ROUND);
+        //startCountDown(SECONDS_PER_ROUND);
     }
 
     // x3
@@ -150,7 +162,12 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, room;
 
     // x3
     function endRound() {
+        // Change players order
+        currentPlayers.push(currentPlayers.shift());
+        console.log('End round: ' + currentPlayers);
+        // Check word
         checkInput(getInput());
+        // End round
         inRoundFlag = false;
         clearTimeout(countDownTimeout);
         $('#word_text').val('').blur();
