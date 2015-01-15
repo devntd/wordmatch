@@ -38,7 +38,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom;
         } else {
             // Cancel game
             $(this).removeClass('stop-game-play').html('Play');
-            socket.emit('exit game');
+            socket.emit('exit game', currentRoom);
         }
     });
 
@@ -57,21 +57,26 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom;
         // Assign local data
         currentRoom = roomName;
         currentChar = firstChar;
-        currentPlayer = players[0];
         currentPlayers = players;
+        currentPlayer = currentPlayers[0];
         // Start game
         startRound();
     });
 
-    socket.on('send result', function (roomName, players, lastChar) {
+    socket.on('send result', function (roomName, players, randomChar) {
         // handle anything...............
-        console.log(players);
+        //console.log('Play game: '+ players);
+        console.log(String.fromCharCode(randomChar));
+        currentChar = randomChar;
+        currentPlayers = players;
+        currentPlayer = currentPlayers[0];
+        startRound();
     });
 
-    socket.emit('typing', getInput());
 
     // Send word to server
     $('#word_text').keyup(function (e) {
+        socket.emit('typing', currentRoom, getInput());
         var currentInput = getInput();
         if (currentPlayer.socketId == socketID && inRoundFlag === true && e.which == 13 && currentInput !== '' && currentInput.length > 1) {
             endRound();
@@ -83,6 +88,13 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom;
             $('#input-tooltip').tooltipster('hide');
         }
     });
+
+    socket.on('send typing', function (text) {
+        if (currentPlayer.socketId != socketID) {
+            $('#word_text').val(text);
+        }
+    });
+
 
     // x3
     function checkInput(text) {
@@ -149,13 +161,16 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom;
 
     // x3
     function endRound() {
-        var playerShift = currentPlayers.shift();
-        currentPlayers.push(playerShift);
+        // Change players order
+        currentPlayers.push(currentPlayers.shift());
+        console.log('End round: ' + currentPlayers);
+        // Check word
+        checkInput(getInput());
+        // End round
         inRoundFlag = false;
         clearTimeout(countDownTimeout);
         $('#word_text').val('').blur();
         $('#input-tooltip').tooltipster('hide');
-        checkInput(getInput());
     }
 
     // x3
