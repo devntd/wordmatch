@@ -12,7 +12,7 @@ var SECONDS_OF_PENDING = 3;
 
 var countDownTimeout, inRoundFlag = false;
 var passedWords = [], score = 0, timeRemaining;
-var socketID, currentPlayer, currentPlayers = [], currentChar = 0, room;
+var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom;
 
 (function ($) {
     // Init socket
@@ -55,24 +55,23 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, room;
         passedWords.doClear();
         inRoundFlag = true;
         // Assign local data
-        room = roomName;
+        currentRoom = roomName;
         currentChar = firstChar;
-        currentPlayer = players.shift();
-        players.push(currentPlayer);
+        currentPlayer = players[0];
         currentPlayers = players;
         // Start game
         startRound();
     });
 
-    socket.on('send result', function (nextId, lastLetter, status) {
+    socket.on('send result', function (roomName, players, lastChar) {
         // handle anything...............
+        console.log(players);
     });
 
     socket.emit('typing', getInput());
 
     // Send word to server
     $('#word_text').keyup(function (e) {
-        console.log(socketID);
         var currentInput = getInput();
         if (currentPlayer.socketId == socketID && inRoundFlag === true && e.which == 13 && currentInput !== '' && currentInput.length > 1) {
             endRound();
@@ -96,7 +95,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, room;
             return false;
         }
         // Words errors
-        if (text.charCodeAt(0) !== char.current) {
+        if (text.charCodeAt(0) !== currentChar) {
             $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
             gameOver('First letter does not match! Games Over!');
             return false;
@@ -107,7 +106,9 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, room;
         }
 
         // If everything is ok, let's check
-        socket.emit('send word', room, currentPlayers, text);
+        if (typeof text === 'string' && text.length > 1) {
+            socket.emit('send word', currentRoom, currentPlayers, text);
+        }
     }
 
     // x3
@@ -118,13 +119,13 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, room;
             if (currentSlide === 0) return 'result-true';
         });
         /*setTimeout(function () {
-            $('.slide:nth-child(' + (currentSlide + 3) + ')').html(String.fromCharCode(char.next)).removeClass(function () {
-                if (currentSlide === 0) return 'result-true';
-            });
-        }, 1000);*/
+         $('.slide:nth-child(' + (currentSlide + 3) + ')').html(String.fromCharCode(char.next)).removeClass(function () {
+         if (currentSlide === 0) return 'result-true';
+         });
+         }, 1000);*/
         $('#word_text').focus().val('');
         inRoundFlag = true;
-        startCountDown(SECONDS_PER_ROUND);
+        //startCountDown(SECONDS_PER_ROUND);
     }
 
     // x3
@@ -148,11 +149,13 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, room;
 
     // x3
     function endRound() {
-        checkInput(getInput());
+        currentPlayer = currentPlayers.shift();
+        currentPlayers.push(currentPlayer);
         inRoundFlag = false;
         clearTimeout(countDownTimeout);
         $('#word_text').val('').blur();
         $('#input-tooltip').tooltipster('hide');
+        checkInput(getInput());
     }
 
     // x3

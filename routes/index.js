@@ -179,18 +179,17 @@ module.exports = function (io) {
 
         // Players send their words
         socket.on('send word', function (key, obj, wordInput) {
+            var lastChar;
             Words.findOne({'word': new RegExp('^' + wordInput + '$', "i")}, function (err, word) {
                 if (err) {
                     return handleError(err);
                 } else if (word) {
-                    console.log(word.toObject());
-                    console.log('Have a word');
-                    var lastLetter = wordInput.slice(-1);
-
-                    console.log(lastLetter);
-                    io.sockets.in(key).emit('send result', key, obj, lastLetter);
+                    lastChar = wordInput.slice(-1);
+                    io.sockets.in(key).emit('send result', key, obj, lastChar);
                 } else {
-
+                    lastChar = wordInput.slice(-1);
+                    obj.pop();
+                    io.sockets.in(key).emit('send result', key, obj, lastChar);
                 }
             });
         });
