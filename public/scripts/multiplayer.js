@@ -107,7 +107,9 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, room;
         }
 
         // If everything is ok, let's check
-        socket.emit('send word', room, currentPlayers, text);
+        if (typeof text === 'string' && text.length > 1) {
+            socket.emit('send word', room, currentPlayers, text);
+        }
     }
 
     // x3
@@ -118,10 +120,10 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, room;
             if (currentSlide === 0) return 'result-true';
         });
         /*setTimeout(function () {
-            $('.slide:nth-child(' + (currentSlide + 3) + ')').html(String.fromCharCode(char.next)).removeClass(function () {
-                if (currentSlide === 0) return 'result-true';
-            });
-        }, 1000);*/
+         $('.slide:nth-child(' + (currentSlide + 3) + ')').html(String.fromCharCode(char.next)).removeClass(function () {
+         if (currentSlide === 0) return 'result-true';
+         });
+         }, 1000);*/
         $('#word_text').focus().val('');
         inRoundFlag = true;
         startCountDown(SECONDS_PER_ROUND);
