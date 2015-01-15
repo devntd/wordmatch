@@ -176,8 +176,6 @@ module.exports = function (io) {
                 }
             }
         });
-
-aaaaaadadad
         // Players send their words
         socket.on('send word', function (roomName, players, sentWord) {
             Words.findOne({'word': new RegExp('^' + sentWord + '$', "i")}, function (err, queriedWord) {
