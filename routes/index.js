@@ -2,7 +2,6 @@ var express = require('express');
 var router = express.Router();
 var modelSchema = require('../models/Schema');
 var uuid = require('node-uuid');
-var Room = require('../models/Room');
 var _ = require('underscore')._;
 module.exports = function (io) {
     var Words = modelSchema.Words;
