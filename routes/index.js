@@ -66,13 +66,12 @@ module.exports = function (io) {
         }
     );
 
-
-// Result page
+    // Result page
     router.get('/result', function (req, res) {
         res.redirect('/');
     });
 
-// Social share
+    // Social share
     router.get('/result/:info', function (req, res) {
         // base64 decode
         var info = new Buffer(req.params.info, 'base64').toString('ascii').split('-');
@@ -84,7 +83,7 @@ module.exports = function (io) {
         });
     });
 
-// Check input word
+    // Check input word
     router.post('/check-word', function (req, res) {
         var txtWord = req.body.submitWord;
         Words.findOne({'word': new RegExp('^' + txtWord + '$', "i")}, function (err, word) {
@@ -100,7 +99,7 @@ module.exports = function (io) {
         });
     });
 
-// Set cookies
+    // Set cookies
     router.post('/setting', function (req, res) {
         res.cookie('gamePlay', req.body.gamePlay);
         res.cookie('playerNumber', req.body.playerNumber);
@@ -108,7 +107,7 @@ module.exports = function (io) {
         res.send(req.body.gamePlay);
     });
 
-// Score board
+    // Score board
     router.post('/add-score', function (req, res) {
         if (typeof req.body.name === 'string' && req.body.name !== '' && req.body.score !== '0') {
             var rankPlayer = new Ranks({
@@ -141,7 +140,6 @@ module.exports = function (io) {
         }
     });
 
-
     function randomChar() {
         var numberRan;
         do {
@@ -151,6 +149,7 @@ module.exports = function (io) {
     }
 
     io.on("connection", function (socket) {
+        // Player request to join, start game when enough players
         socket.on('join game', function (name) {
             var player = {'socketId': socket.id, 'name': name, 'status': 1};
             if (_.isEmpty(rooms)) {
@@ -161,18 +160,17 @@ module.exports = function (io) {
                 room.push(player);
                 rooms[id] = room;
             } else {
-                for (var key in rooms) {
-                    if (rooms.hasOwnProperty(key)) {
-                        var obj = rooms[key];
-                        if (_.size(obj) < 4) {
-                            socket.room = key;
+                for (var roomName in rooms) {
+                    if (rooms.hasOwnProperty(roomName)) {
+                        var players = rooms[roomName];
+                        if (_.size(players) < 2) {
+                            socket.room = roomName;
                             socket.join(socket.room);
-                            obj.push(player);
-                            //console.log(obj[0].socketId);
-                            io.sockets.in(socket.room).emit('players changed', obj);
-                            if (_.size(obj) == 4) {
-                                io.sockets.in(socket.room).emit('play game', key, obj, randomChar());
-                            }
+                            players.push(player);
+                            // Players number changed
+                            io.sockets.in(socket.room).emit('players changed', players);
+                            // Enough players, let's play
+                            if (_.size(players) == 2) io.sockets.in(socket.room).emit('play game', roomName, players, randomChar());
                             break;
                         }
                     }
@@ -180,12 +178,17 @@ module.exports = function (io) {
             }
         });
 
-        socket.on('send word', function (key, obj, word) {
-            Words.findOne({'word': new RegExp('^' + word + '$', "i")}, function (err, word) {
+        // Players send their words
+        socket.on('send word', function (key, obj, wordInput) {
+            Words.findOne({'word': new RegExp('^' + wordInput + '$', "i")}, function (err, word) {
                 if (err) {
                     return handleError(err);
                 } else if (word) {
-                    var lastLetter = word.slice(-1);
+                    console.log(word.toObject());
+                    console.log('Have a word');
+                    var lastLetter = wordInput.slice(-1);
+
+                    console.log(lastLetter);
                     io.sockets.in(key).emit('send result', key, obj, lastLetter);
                 } else {
 
@@ -193,8 +196,9 @@ module.exports = function (io) {
             });
         });
 
-        // disconnect
+        // Disconnect
         socket.on('disconnect', function () {
+            // sth goes here
         });
     });
 

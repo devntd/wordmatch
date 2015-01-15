@@ -3,19 +3,20 @@
  */
 var socket;
 
-// Global variables
 CHAR_CODE_A = 'a'.charCodeAt(0);
 CHAR_CODE_X = 'x'.charCodeAt(0);
 CHAR_CODE_Z = 'z'.charCodeAt(0);
 
 var SECONDS_PER_ROUND = 10;
+var SECONDS_OF_PENDING = 3;
 
 var countDownTimeout, inRoundFlag = false;
 var passedWords = [], score = 0, timeRemaining;
+var socketID, currentPlayer, currentPlayers = [], currentChar = 0, room;
 
 (function ($) {
+    // Init socket
     socket = io.connect('http://wordmatch.org:4100');
-    var socketId;
 
     // Init slide
     var bxSlider = $('.game_content').bxSlider({
@@ -27,16 +28,15 @@ var passedWords = [], score = 0, timeRemaining;
         autoDelay: 200
     });
 
-    /**
-     * Socket handling
-     */
-
     $('.start-game-play').on('touchstart, click', function () {
-        socketId = socket.io.engine.id;
+        // Store socketID and request to join game
+        socketID = socket.io.engine.id;
         socket.emit('join game', $.cookie('playerName'));
+        // Waiting status
         if (!$(this).hasClass('stop-game-play')) {
             $(this).addClass('stop-game-play').html('Stop');
         } else {
+            // Cancel game
             $(this).removeClass('stop-game-play').html('Play');
             socket.emit('exit game');
         }
@@ -48,37 +48,37 @@ var passedWords = [], score = 0, timeRemaining;
         });
     });
 
-    socket.on('play game', function (roomName, players, firstLetter) {
+    socket.on('play game', function (roomName, players, firstChar) {
         // Hide play button
         $('.game_load').css('z-index', '0');
-
-        // Check idFirst with socket.id
-        var nowPlayer = players.shift();
-        if (nowPlayer.socketId == socketId) {
-
-        }
+        // Clear and Init data
+        passedWords.doClear();
+        inRoundFlag = true;
+        // Assign local data
+        room = roomName;
+        currentChar = firstChar;
+        currentPlayer = players.shift();
+        players.push(currentPlayer);
+        currentPlayers = players;
+        // Start game
+        startRound();
     });
-
-
 
     socket.on('send result', function (nextId, lastLetter, status) {
         // handle anything...............
     });
 
-    socket.emit('typing', 'Word is typing');
-
-    /**
-     * Client handling
-     */
+    socket.emit('typing', getInput());
 
     // Send word to server
     $('#word_text').keyup(function (e) {
+        console.log(socketID);
         var currentInput = getInput();
-        if (inRoundFlag === true && e.which == 13 && currentInput !== '' && currentInput.length > 1) {
-            socket.emit('send word');
-        } else if (inRoundFlag === true && e.which == 13 && currentInput === '') {
+        if (currentPlayer.socketId == socketID && inRoundFlag === true && e.which == 13 && currentInput !== '' && currentInput.length > 1) {
+            endRound();
+        } else if (currentPlayer.socketId == socketID && inRoundFlag === true && e.which == 13 && currentInput === '') {
             $('#input-tooltip').tooltipster('content', 'Don\'t leave this input empty').tooltipster('show');
-        } else if (inRoundFlag === true && e.which == 13 && currentInput.length < 2) {
+        } else if (currentPlayer.socketId == socketID && inRoundFlag === true && e.which == 13 && currentInput.length < 2) {
             $('#input-tooltip').tooltipster('content', 'Word must contains at least 2 letters and not yet be submitted').tooltipster('show');
         } else {
             $('#input-tooltip').tooltipster('hide');
@@ -87,22 +87,41 @@ var passedWords = [], score = 0, timeRemaining;
 
     // x3
     function checkInput(text) {
+        // Current slide
+        var currentSlide = bxSlider.getCurrentSlide();
+        // User errors --> Don't allow to send request to server
+        if (typeof text !== 'string' || text === '' || inRoundFlag !== true || text.length < 2) {
+            $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
+            gameOver('Wrong input!');
+            return false;
+        }
+        // Words errors
+        if (text.charCodeAt(0) !== char.current) {
+            $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
+            gameOver('First letter does not match! Games Over!');
+            return false;
+        } else if (passedWords.indexOf(text) !== -1) {
+            $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
+            gameOver('Last word has already been submitted!');
+            return false;
+        }
 
+        // If everything is ok, let's check
+        socket.emit('send word', room, currentPlayers, text);
     }
 
     // x3
     function startRound() {
         // Each time start
         var currentSlide = bxSlider.getCurrentSlide();
-        $('.slide:nth-child(' + (currentSlide + 2) + ')').html(String.fromCharCode(char.current)).removeClass(function () {
+        $('.slide:nth-child(' + (currentSlide + 2) + ')').html(String.fromCharCode(currentChar)).removeClass(function () {
             if (currentSlide === 0) return 'result-true';
         });
-        setTimeout(function () {
+        /*setTimeout(function () {
             $('.slide:nth-child(' + (currentSlide + 3) + ')').html(String.fromCharCode(char.next)).removeClass(function () {
                 if (currentSlide === 0) return 'result-true';
             });
-        }, 1000);
-
+        }, 1000);*/
         $('#word_text').focus().val('');
         inRoundFlag = true;
         startCountDown(SECONDS_PER_ROUND);
