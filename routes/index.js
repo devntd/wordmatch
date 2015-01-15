@@ -183,8 +183,8 @@ module.exports = function (io) {
                     return handleError(err);
                 } else {
                     console.log(queriedWord);
-                    if (!queriedWord) players.pop();
-                    io.sockets.in(roomName).emit('send result', roomName, players, randomChar());
+                    var playerWrong = (!queriedWord) ? players.pop() : null;
+                    io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), playerWrong);
                 }
             });
         });

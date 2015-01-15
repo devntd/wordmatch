@@ -407,7 +407,7 @@ header .navbar-default ul li:hover {
 .import_text_check table {
     width: 100%;
     margin-top: 35px;
-    color: #cccccc;
+    color: #eeeeee;
     text-align: center;
 }
 
@@ -418,13 +418,20 @@ header .navbar-default ul li:hover {
 table.joined-players td.joined-player {
     background-color: #3F89AE;
     border: 2px solid #07608C;
+    width: 50%;
+    font-weight: bold;
 }
 
 table.joined-players td.active {
-    border: 2px solid #ffffff;
     color: #ffffff;
     text-shadow: 0 0 2px #ffffff;
-    background-color: #6DAECF;
+    background-color: #79bbdb;
+}
+
+table.joined-players td.lost {
+    text-decoration: line-through;
+    font-weight: normal;
+    color: #d9534f;
 }
 
 .commentbox > span, .commentbox .comments {

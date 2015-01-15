@@ -63,9 +63,10 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom;
         startRound();
     });
 
-    socket.on('send result', function (roomName, players, randomChar) {
-        // handle anything...............
-        //console.log('Play game: '+ players);
+    socket.on('send result', function (roomName, players, randomChar, lostPlayer) {
+        if (lostPlayer !== null) {
+            $('.joined-player.' + lostPlayer.socketId).addClass('lost');
+        }
         console.log(String.fromCharCode(randomChar));
         currentChar = randomChar;
         currentPlayers = players;
@@ -94,7 +95,6 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom;
             $('#word_text').val(text);
         }
     });
-
 
     // x3
     function checkInput(text) {
@@ -135,6 +135,10 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom;
          if (currentSlide === 0) return 'result-true';
          });
          }, 1000);*/
+        // Change current user highlight
+        $('.joined-player').removeClass('active');
+        $('.joined-player.' + currentPlayer.socketId).addClass('active');
+        // Focus on the input
         $('#word_text').focus().val('');
         inRoundFlag = true;
         //startCountDown(SECONDS_PER_ROUND);
@@ -163,7 +167,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom;
     function endRound() {
         // Change players order
         currentPlayers.push(currentPlayers.shift());
-        console.log('End round: ' + currentPlayers);
+        //console.log('End round: ' + currentPlayers);
         // Check word
         checkInput(getInput());
         // End round
