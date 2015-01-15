@@ -167,7 +167,7 @@ module.exports = function (io) {
                             socket.join(socket.room);
                             players.push(player);
                             // Players number changed
-                            io.sockets.in(socket.room).emit('players changed', players);
+                            io.sockets.in(socket.room).emit('players changed', roomName, player, players);
                             // Enough players, let's play
                             if (_.size(players) == 2) io.sockets.in(socket.room).emit('play game', roomName, players, randomChar());
                             break;

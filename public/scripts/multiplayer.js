@@ -12,7 +12,7 @@ var SECONDS_OF_PENDING = 3;
 
 var countDownTimeout, inRoundFlag = false;
 var passedWords = [], score = 0, timeRemaining;
-var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom;
+var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, clientPlayer;
 
 (function ($) {
     // Init socket
@@ -38,11 +38,13 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom;
         } else {
             // Cancel game
             $(this).removeClass('stop-game-play').html('Play');
-            socket.emit('exit game', currentRoom);
+            socket.emit('exit game', currentRoom, clientPlayer);
         }
     });
 
-    socket.on('players changed', function (players) {
+    socket.on('players changed', function (room, player, players) {
+        currentRoom = room;
+        clientPlayer = player;
         $.each(players, function (index, player) {
             $('.player-' + (index + 1)).html(player.name).addClass(player.socketId);
         });
