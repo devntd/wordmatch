@@ -105,6 +105,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom;
             return false;
         }
 
+
         // If everything is ok, let's check
         if (typeof text === 'string' && text.length > 1) {
             socket.emit('send word', currentRoom, currentPlayers, text);
