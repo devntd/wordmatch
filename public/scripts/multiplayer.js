@@ -69,11 +69,12 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         startRound();
     });
 
-    socket.on('send result', function (roomName, players, randomChar, lostPlayer) {
+    socket.on('send result', function (roomName, players, randomChar, checkedWord, lostPlayer) {
         if (lostPlayer !== null) {
             $('.joined-player.' + lostPlayer.socketId).addClass('lost');
+        } else {
+            passedWords.push(checkedWord);
         }
-        console.log(String.fromCharCode(randomChar));
         currentChar = randomChar;
         currentPlayers = players;
         currentPlayer = currentPlayers[0];

@@ -158,6 +158,7 @@ module.exports = function (io) {
                 var room = [];
                 room.push(player);
                 rooms[id] = room;
+                console.log(rooms);
                 io.sockets.in(socket.room).emit('players changed', id, player, rooms[id]);
             } else {
                 for (var roomName in rooms) {
@@ -184,8 +185,9 @@ module.exports = function (io) {
                     return handleError(err);
                 } else {
                     console.log(queriedWord);
+
                     var playerWrong = (!queriedWord) ? players.pop() : null;
-                    io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), playerWrong);
+                    io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), sentWord, playerWrong);
                 }
             });
         });
@@ -195,17 +197,20 @@ module.exports = function (io) {
             //socket.broadcast.to('roomName').emit('send typing', text);
             io.sockets.in(roomName).emit('send typing', text);
         });
+
+        // exit game
         socket.on('exit game', function (roomName, clientPlayer) {
-            console.log(rooms);
-            console.log(roomName);
+            socket.leave(roomName);
             rooms[roomName] = _.without(rooms[roomName], _.findWhere(rooms[roomName], clientPlayer));
-            console.log(rooms);
         });
 
         // Disconnect
         socket.on('disconnect', function () {
             // sth goes here
-            socket.leave(socket.room);
+            if (!_.isUndefined(socket.room)) {
+                socket.leave(socket.room);
+                rooms[socket.room] = _.without(rooms[socket.room], _.findWhere(rooms[socket.room], {socketId: socket.id}));
+            }
         });
     });
 
