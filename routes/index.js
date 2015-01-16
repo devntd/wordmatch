@@ -184,12 +184,15 @@ module.exports = function (io) {
                 if (err) {
                     return handleError(err);
                 } else {
-                    console.log(queriedWord);
-
                     var playerWrong = (!queriedWord) ? players.pop() : null;
                     io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), sentWord, playerWrong);
                 }
             });
+        });
+
+        socket.on('wrong word', function (roomName, players, sentWord) {
+            var playerWrong = players.pop();
+            io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), sentWord, playerWrong);
         });
 
         socket.on('typing', function (roomName, text) {
