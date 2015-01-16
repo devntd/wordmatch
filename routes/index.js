@@ -158,6 +158,7 @@ module.exports = function (io) {
                 var room = [];
                 room.push(player);
                 rooms[id] = room;
+                io.sockets.in(socket.room).emit('players changed', id, player, rooms[id]);
             } else {
                 for (var roomName in rooms) {
                     if (rooms.hasOwnProperty(roomName)) {
@@ -194,8 +195,11 @@ module.exports = function (io) {
             //socket.broadcast.to('roomName').emit('send typing', text);
             io.sockets.in(roomName).emit('send typing', text);
         });
-        socket.on('exit', function () {
-
+        socket.on('exit game', function (roomName, clientPlayer) {
+            console.log(rooms);
+            console.log(roomName);
+            rooms[roomName] = _.without(rooms[roomName], _.findWhere(rooms[roomName], clientPlayer));
+            console.log(rooms);
         });
 
         // Disconnect

@@ -31,10 +31,11 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     $('.start-game-play').on('touchstart, click', function () {
         // Store socketID and request to join game
         socketID = socket.io.engine.id;
-        socket.emit('join game', $.cookie('playerName'));
+
         // Waiting status
         if (!$(this).hasClass('stop-game-play')) {
             $(this).addClass('stop-game-play').html('Stop');
+            socket.emit('join game', $.cookie('playerName'));
         } else {
             // Cancel game
             $(this).removeClass('stop-game-play').html('Play');
@@ -42,6 +43,9 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         }
     });
 
+    //$.('.stop-game-play').on('touchstart, click', function () {
+    //
+    //});
     socket.on('players changed', function (room, player, players) {
         currentRoom = room;
         clientPlayer = player;
