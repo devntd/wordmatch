@@ -158,27 +158,21 @@ module.exports = function (io) {
                 var room = [];
                 room.push(player);
                 rooms[id] = {'players': room, 'status': 0};
-                console.log('Create room: ');
-                console.log(rooms);
-                //console.log(rooms[id].player);
+                console.log('Create room: ' + rooms);
                 io.sockets.in(socket.room).emit('players changed', id, player, rooms[id]);
             } else {
                 for (var roomName in rooms) {
                     if (rooms.hasOwnProperty(roomName)) {
                         var players = rooms[roomName].players;
-                        if (_.size(players) < 2 && rooms[roomName].status == 0) {
+                        if (_.size(players) < 2) {
                             socket.room = roomName;
                             socket.join(socket.room);
                             players.push(player);
                             // Players number changed
-                            console.log('join room: ');
-                            console.log(rooms);
-                            console.log(rooms[roomName].players);
                             io.sockets.in(socket.room).emit('players changed', roomName, player, players);
                             // Enough players, let's play
                             if (_.size(players) == 2) {
                                 rooms[roomName].status = 1;
-                                console.log(rooms);
                                 io.sockets.in(socket.room).emit('play game', roomName, players, randomChar());
                             }
                             break;
@@ -221,7 +215,6 @@ module.exports = function (io) {
             socket.leave(roomName);
             rooms[roomName].players = _.without(rooms[roomName].players, _.findWhere(rooms[roomName].players, clientPlayer));
             rooms[roomName].status = 0;
-            console.log(rooms);
         });
 
         // Disconnect
@@ -229,11 +222,10 @@ module.exports = function (io) {
             // sth goes here
             if (!_.isUndefined(socket.room)) {
                 socket.leave(socket.room);
-                rooms[socket.room] = _.without(rooms[socket.room], _.findWhere(rooms[socket.room], {socketId: socket.id}));
+                rooms[socket.room].players = _.without(rooms[socket.room].players, _.findWhere(rooms[socket.room].players, clientPlayer));
             }
         });
     });
 
     return router;
-}
-;
+};
