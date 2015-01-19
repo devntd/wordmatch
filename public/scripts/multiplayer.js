@@ -70,22 +70,44 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     });
 
     socket.on('send result', function (roomName, players, randomChar, checkedWord, lostPlayer) {
-        if (lostPlayer !== null) {
-            $('.joined-player.' + lostPlayer.socketId).addClass('lost');
-        } else {
+        console.log(players);
+        if (lostPlayer === null && checkedWord !== null && _.size(players) > 0) { // Correct result --> next player
+            // New round data
+            currentChar = randomChar;
+            if (_.size(players) > 0) {
+                currentPlayers = players;
+                currentPlayer = currentPlayers[0];
+            }
+            // Push passed word into stack
             passedWords.push(checkedWord);
+            // Start new round
+            startRound();
+        } else if (lostPlayer !== null && checkedWord === null && _.size(players) > 0) { // Incorrect result --> next player
+            // New round data
+            currentChar = randomChar;
+            if (_.size(players) > 0) {
+                currentPlayers = players;
+                currentPlayer = currentPlayers[0];
+            }
+            // Push passed word into stack
+            passedWords.push(checkedWord);
+            // Highlight loser
+            $('.joined-player.' + lostPlayer.socketId).addClass('lost');
+            if (socketID == lostPlayer.socketId) gameOver('Word submitted does not exist! Game Over!');
+            // Start new round
+            startRound();
+        } else if (lostPlayer === null && checkedWord !== null && _.size(players) == 0) { // Correct result from last player --> winner
+            $('.joined-player.' + lostPlayer.socketId).addClass('lost');
+            if (socketID == lostPlayer.socketId) gameOver('Congrats! Winner!');
+        } else if (lostPlayer !== null && checkedWord !== null && _.size(players) == 0) { // Incorrect result from last player --> loser
+            if (socketID == lostPlayer.socketId) gameOver('Congrats! Loser!');
         }
-        currentChar = randomChar;
-        currentPlayers = players;
-        currentPlayer = currentPlayers[0];
-        startRound();
     });
-
 
     // Send word to server
     $('#word_text').keyup(function (e) {
-        socket.emit('typing', currentRoom, getInput());
         var currentInput = getInput();
+        socket.emit('typing', currentRoom, currentInput);
         if (currentPlayer.socketId == socketID && inRoundFlag === true && e.which == 13 && currentInput !== '' && currentInput.length > 1) {
             endRound();
         } else if (currentPlayer.socketId == socketID && inRoundFlag === true && e.which == 13 && currentInput === '') {
@@ -98,28 +120,27 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     });
 
     socket.on('send typing', function (text) {
-        if (currentPlayer.socketId != socketID) {
-            $('#word_text').val(text);
-        }
+        if (currentPlayer.socketId != socketID) $('#word_text').val(text);
     });
 
     // x3
     function checkInput(text) {
-        // Current slide
-        var currentSlide = bxSlider.getCurrentSlide();
         // User errors --> Don't allow to send request to server
         if (typeof text !== 'string' || text === '' || inRoundFlag !== true || text.length < 2) {
-            $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
+            // Inform wrong word
+            socket.emit('wrong word', currentRoom, currentPlayers);
             gameOver('Wrong input!');
             return false;
         }
         // Words errors
         if (text.charCodeAt(0) !== currentChar) {
-            $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
+            // Inform wrong word
+            socket.emit('wrong word', currentRoom, currentPlayers);
             gameOver('First letter does not match! Games Over!');
             return false;
         } else if (passedWords.indexOf(text) !== -1) {
-            $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
+            // Inform wrong word
+            socket.emit('wrong word', currentRoom, currentPlayers);
             gameOver('Last word has already been submitted!');
             return false;
         }
@@ -174,7 +195,6 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     function endRound() {
         // Change players order
         currentPlayers.push(currentPlayers.shift());
-        //console.log('End round: ' + currentPlayers);
         // Check word
         checkInput(getInput());
         // End round
@@ -191,6 +211,8 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
 
     // x3
     function gameOver(error) {
+        // Client's UI
+        $('.slide:nth-child(' + (bxSlider.getCurrentSlide() + 2) + ')').addClass('result-false');
         ion.sound.play('wrong_answer');
         $('.game_load').css('z-index', '888');
         setTimeout(function () {

@@ -157,21 +157,30 @@ module.exports = function (io) {
                 socket.join(socket.room);
                 var room = [];
                 room.push(player);
-                rooms[id] = room;
+                rooms[id] = {'players': room, 'status': 0};
+                console.log('Create room: ');
                 console.log(rooms);
+                //console.log(rooms[id].player);
                 io.sockets.in(socket.room).emit('players changed', id, player, rooms[id]);
             } else {
                 for (var roomName in rooms) {
                     if (rooms.hasOwnProperty(roomName)) {
-                        var players = rooms[roomName];
-                        if (_.size(players) < 2) {
+                        var players = rooms[roomName].players;
+                        if (_.size(players) < 2 && rooms[roomName].status == 0) {
                             socket.room = roomName;
                             socket.join(socket.room);
                             players.push(player);
                             // Players number changed
+                            console.log('join room: ');
+                            console.log(rooms);
+                            console.log(rooms[roomName].players);
                             io.sockets.in(socket.room).emit('players changed', roomName, player, players);
                             // Enough players, let's play
-                            if (_.size(players) == 2) io.sockets.in(socket.room).emit('play game', roomName, players, randomChar());
+                            if (_.size(players) == 2) {
+                                rooms[roomName].status = 1;
+                                console.log(rooms);
+                                io.sockets.in(socket.room).emit('play game', roomName, players, randomChar());
+                            }
                             break;
                         }
                     }
@@ -181,30 +190,38 @@ module.exports = function (io) {
         // Players send their words
         socket.on('send word', function (roomName, players, sentWord) {
             Words.findOne({'word': new RegExp('^' + sentWord + '$', "i")}, function (err, queriedWord) {
+                var loser = null;
                 if (err) {
                     return handleError(err);
+                } else if (queriedWord) {
+                    if (_.size(players) === 1) {
+                        loser = players.pop();
+                        io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), null, loser);
+                    } else {
+                        io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), queriedWord, null);
+                    }
                 } else {
-                    var playerWrong = (!queriedWord) ? players.pop() : null;
-                    io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), sentWord, playerWrong);
+                    loser = players.pop();
+                    io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), null, loser);
                 }
             });
         });
 
-        socket.on('wrong word', function (roomName, players, sentWord) {
-            var playerWrong = players.pop();
-            io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), sentWord, playerWrong);
+        socket.on('wrong word', function (roomName, players) {
+            var lostPlayer = players.pop();
+            io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), null, lostPlayer);
         });
 
         socket.on('typing', function (roomName, text) {
-            console.log(text);
-            //socket.broadcast.to('roomName').emit('send typing', text);
             io.sockets.in(roomName).emit('send typing', text);
         });
 
         // exit game
         socket.on('exit game', function (roomName, clientPlayer) {
             socket.leave(roomName);
-            rooms[roomName] = _.without(rooms[roomName], _.findWhere(rooms[roomName], clientPlayer));
+            rooms[roomName].players = _.without(rooms[roomName].players, _.findWhere(rooms[roomName].players, clientPlayer));
+            rooms[roomName].status = 0;
+            console.log(rooms);
         });
 
         // Disconnect
