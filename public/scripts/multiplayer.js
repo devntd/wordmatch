@@ -43,9 +43,6 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         }
     });
 
-    //$.('.stop-game-play').on('touchstart, click', function () {
-    //
-    //});
     socket.on('players changed', function (room, player, players) {
         currentRoom = room;
         clientPlayer = player;
@@ -71,6 +68,9 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
 
     socket.on('send result', function (roomName, players, randomChar, checkedWord, lostPlayer) {
         console.log(players);
+        console.log(checkedWord);
+        console.log(lostPlayer);
+        console.log('******');
         if (lostPlayer === null && checkedWord !== null && _.size(players) > 0) { // Correct result --> next player
             // New round data
             currentChar = randomChar;

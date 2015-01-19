@@ -190,9 +190,9 @@ module.exports = function (io) {
                 } else if (queriedWord) {
                     if (_.size(players) === 1) {
                         loser = players.pop();
-                        io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), null, loser);
+                        io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), queriedWord, loser);
                     } else {
-                        io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), queriedWord, null);
+                            io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), queriedWord, null);
                     }
                 } else {
                     loser = players.pop();
