@@ -52,6 +52,8 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     });
 
     socket.on('play game', function (roomName, players, firstChar) {
+        // Reset score
+        $('.point').html(score = 0);
         // Hide play button
         $('.game_load').css('z-index', '0');
         // Clear and Init data
@@ -67,40 +69,54 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     });
 
     socket.on('send result', function (roomName, players, randomChar, checkedWord, lostPlayer) {
-        console.log(players);
-        console.log(checkedWord);
-        console.log(lostPlayer);
-        console.log('******');
+        // Clear timeout all players
+        clearTimeout(countDownTimeout);
+        // Check result
         if (lostPlayer === null && checkedWord !== null && _.size(players) > 0) { // Correct result --> next player
             // New round data
             currentChar = randomChar;
-            if (_.size(players) > 0) {
-                currentPlayers = players;
-                currentPlayer = currentPlayers[0];
-            }
+            currentPlayers = players;
+            currentPlayer = currentPlayers[0];
             // Push passed word into stack
             passedWords.push(checkedWord);
+            // Set score to the last player (after swap)
+            if (socketID == players[players.length - 1].socketId) {
+                score += timeRemaining;
+                $('.point').html(score);
+            }
             // Start new round
             startRound();
         } else if (lostPlayer !== null && checkedWord === null && _.size(players) > 0) { // Incorrect result --> next player
             // New round data
             currentChar = randomChar;
-            if (_.size(players) > 0) {
-                currentPlayers = players;
-                currentPlayer = currentPlayers[0];
-            }
-            // Push passed word into stack
-            passedWords.push(checkedWord);
+            currentPlayers = players;
+            currentPlayer = currentPlayers[0];
             // Highlight loser
             $('.joined-player.' + lostPlayer.socketId).addClass('lost');
-            if (socketID == lostPlayer.socketId) gameOver('Word submitted does not exist! Game Over!');
-            // Start new round
-            startRound();
-        } else if (lostPlayer === null && checkedWord !== null && _.size(players) == 0) { // Correct result from last player --> winner
+            if (socketID == lostPlayer.socketId) {
+                $('.game_over .modal-title').html('You lost!');
+                gameOver('Word submitted does not exist! Game Over!');
+            } else {
+                // Start new round
+                startRound();
+            }
+        } else if (lostPlayer !== null && checkedWord !== null && _.size(players) == 0) { // Correct result from last player --> winner
             $('.joined-player.' + lostPlayer.socketId).addClass('lost');
-            if (socketID == lostPlayer.socketId) gameOver('Congrats! Winner!');
-        } else if (lostPlayer !== null && checkedWord !== null && _.size(players) == 0) { // Incorrect result from last player --> loser
-            if (socketID == lostPlayer.socketId) gameOver('Congrats! Loser!');
+            if (socketID == lostPlayer.socketId) {
+                $('.game_over .modal-title').html('Congrats! You won!');
+                socket.emit('game over');
+                // Set score
+                score += timeRemaining;
+                $('.point').html(score);
+                // End game
+                gameOver('Congrats! Winner!');
+            }
+        } else if (lostPlayer !== null && checkedWord === null && _.size(players) == 0) { // Incorrect result from last player --> loser
+            if (socketID == lostPlayer.socketId) {
+                $('.game_over .modal-title').html('Congrats! You almost won!');
+                socket.emit('game over');
+                gameOver('Congrats! Loser!');
+            }
         }
     });
 
@@ -108,9 +124,9 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     $('#word_text').keyup(function (e) {
         var currentInput = getInput();
         socket.emit('typing', currentRoom, currentInput);
-        if (currentPlayer.socketId == socketID && inRoundFlag === true && e.which == 13 && currentInput !== '' && currentInput.length > 1) {
+        if (currentPlayer.socketId == socketID && inRoundFlag === true && e.which == 13 && typeof currentInput === 'string' && currentInput.length > 1) {
             endRound();
-        } else if (currentPlayer.socketId == socketID && inRoundFlag === true && e.which == 13 && currentInput === '') {
+        } else if (currentPlayer.socketId == socketID && inRoundFlag === true && e.which == 13 && typeof currentInput === 'string') {
             $('#input-tooltip').tooltipster('content', 'Don\'t leave this input empty').tooltipster('show');
         } else if (currentPlayer.socketId == socketID && inRoundFlag === true && e.which == 13 && currentInput.length < 2) {
             $('#input-tooltip').tooltipster('content', 'Word must contains at least 2 letters and not yet be submitted').tooltipster('show');
@@ -131,9 +147,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             socket.emit('wrong word', currentRoom, currentPlayers);
             gameOver('Wrong input!');
             return false;
-        }
-        // Words errors
-        if (text.charCodeAt(0) !== currentChar) {
+        } else if (text.charCodeAt(0) !== currentChar) { // Words errors
             // Inform wrong word
             socket.emit('wrong word', currentRoom, currentPlayers);
             gameOver('First letter does not match! Games Over!');
@@ -169,7 +183,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         // Focus on the input
         $('#word_text').focus().val('');
         inRoundFlag = true;
-        //startCountDown(SECONDS_PER_ROUND);
+        startCountDown(SECONDS_PER_ROUND);
     }
 
     // x3
@@ -178,7 +192,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             // Count down
             var seconds = parseInt(time);
             $('.mini').html(seconds);
-            if (seconds == 0) {
+            if (seconds === 0 && currentPlayer.socketId == socketID) {
                 ion.sound.play('bell_ring');
                 endRound();
                 return;
@@ -199,7 +213,6 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         checkInput(getInput());
         // End round
         inRoundFlag = false;
-        clearTimeout(countDownTimeout);
         $('#word_text').val('').blur();
         $('#input-tooltip').tooltipster('hide');
     }

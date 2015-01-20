@@ -148,84 +148,129 @@ module.exports = function (io) {
     }
 
     io.on("connection", function (socket) {
-        // Player request to join, start game when enough players
-        socket.on('join game', function (name) {
-            var player = {'socketId': socket.id, 'name': name, 'status': 1};
-            if (_.isEmpty(rooms)) {
-                var id = uuid.v4();
-                socket.room = id;
-                socket.join(socket.room);
-                var room = [];
-                room.push(player);
-                rooms[id] = {'players': room, 'status': 0};
-                console.log('Create room: ' + rooms);
-                io.sockets.in(socket.room).emit('players changed', id, player, rooms[id]);
-            } else {
+            // Player request to join, start game when enough players
+            socket.on('join game', function (name) {
+                var player = {'socketId': socket.id, 'name': name, 'status': 1};
+                if (_.isEmpty(rooms)) {
+                    var id = uuid.v4();
+                    socket.room = id;
+                    socket.join(socket.room);
+                    var room = [];
+                    room.push(player);
+                    rooms[id] = {'players': room, 'status': 0};
+                    console.log('Create room: ');
+                    console.log(rooms);
+                    io.sockets.in(socket.room).emit('players changed', id, player, rooms[id]);
+                } else {
+
+                    //for (var roomName in rooms) {
+                    //    //if (rooms.hasOwnProperty(roomName)) {
+                    //    //    var players = rooms[roomName].players;
+                    //    //    if (_.size(players) < 2 && rooms[roomName].status == 0) {
+                    //    //        socket.room = roomName;
+                    //    //        socket.join(socket.room);
+                    //    //        players.push(player);
+                    //    //        // Players number changed
+                    //    //        io.sockets.in(socket.room).emit('players changed', roomName, player, players);
+                    //    //        // Enough players, let's play
+                    //    //        if (_.size(players) == 2) {
+                    //    //            rooms[roomName].status = 1;
+                    //    //            io.sockets.in(socket.room).emit('play game', roomName, players, randomChar());
+                    //    //        }
+                    //    //        console.log('Join room: ');
+                    //    //        console.log(rooms);
+                    //    //        break;
+                    //    //    }
+                    //    //}
+                    //}
+                    if (_.isEmpty(returnRoom(rooms))) {
+                        var id = uuid.v4();
+                        socket.room = id;
+                        socket.join(socket.room);
+                        var room = [];
+                        room.push(player);
+                        rooms[id] = {'players': room, 'status': 0};
+                        console.log('Create room: ');
+                        console.log(rooms);
+                        io.sockets.in(socket.room).emit('players changed', id, player, rooms[id]);
+                    } else {
+                        var listRoom = returnRoom(rooms);
+                        var players = listRoom[1];
+                        socket.room = listRoom[0];
+                        socket.join(socket.room);
+                        players.push(player);
+                        // Players number changed
+                        io.sockets.in(socket.room).emit('players changed', socket.room, player, players);
+                        // Enough players, let's play
+                        if (_.size(players) == 2) {
+                            rooms[socket.room].status = 1;
+                            io.sockets.in(socket.room).emit('play game', socket.room, players, randomChar());
+                        }
+                        console.log('join room: ');
+                        console.log(rooms);
+                    }
+                }
+            });
+            function returnRoom(rooms) {
                 for (var roomName in rooms) {
                     if (rooms.hasOwnProperty(roomName)) {
                         var players = rooms[roomName].players;
-                        if (_.size(players) < 2) {
-                            socket.room = roomName;
-                            socket.join(socket.room);
-                            players.push(player);
-                            // Players number changed
-                            io.sockets.in(socket.room).emit('players changed', roomName, player, players);
-                            // Enough players, let's play
-                            if (_.size(players) == 2) {
-                                rooms[roomName].status = 1;
-                                io.sockets.in(socket.room).emit('play game', roomName, players, randomChar());
-                            }
-                            break;
+                        if (_.size(players) < 2 && rooms[roomName].status == 0) {
+                            return [roomName, players];
                         }
                     }
                 }
+                return [];
             }
-        });
-        // Players send their words
-        socket.on('send word', function (roomName, players, sentWord) {
-            Words.findOne({'word': new RegExp('^' + sentWord + '$', "i")}, function (err, queriedWord) {
-                var loser = null;
-                if (err) {
-                    return handleError(err);
-                } else if (queriedWord) {
-                    if (_.size(players) === 1) {
-                        loser = players.pop();
-                        io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), queriedWord, loser);
-                    } else {
+
+            // Players send their words
+            socket.on('send word', function (roomName, players, sentWord) {
+                Words.findOne({'word': new RegExp('^' + sentWord + '$', "i")}, function (err, queriedWord) {
+                    var loser = null;
+                    if (err) {
+                        return handleError(err);
+                    } else if (queriedWord) {
+                        if (_.size(players) === 1) {
+                            loser = players.pop();
+                            io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), queriedWord, loser);
+                        } else {
                             io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), queriedWord, null);
+                        }
+                    } else {
+                        loser = players.pop();
+                        io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), null, loser);
                     }
-                } else {
-                    loser = players.pop();
-                    io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), null, loser);
-                }
+                });
             });
-        });
 
-        socket.on('wrong word', function (roomName, players) {
-            var lostPlayer = players.pop();
-            io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), null, lostPlayer);
-        });
+            socket.on('wrong word', function (roomName, players) {
+                var lostPlayer = players.pop();
+                io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), null, lostPlayer);
+            });
 
-        socket.on('typing', function (roomName, text) {
-            io.sockets.in(roomName).emit('send typing', text);
-        });
+            socket.on('typing', function (roomName, text) {
+                io.sockets.in(roomName).emit('send typing', text);
+            });
 
-        // exit game
-        socket.on('exit game', function (roomName, clientPlayer) {
-            socket.leave(roomName);
-            rooms[roomName].players = _.without(rooms[roomName].players, _.findWhere(rooms[roomName].players, clientPlayer));
-            rooms[roomName].status = 0;
-        });
+            // exit game
+            socket.on('exit game', function (roomName, clientPlayer) {
+                socket.leave(roomName);
+                rooms[roomName].players = _.without(rooms[roomName].players, _.findWhere(rooms[roomName].players, clientPlayer));
+                rooms[roomName].status = 0;
+            });
 
-        // Disconnect
-        socket.on('disconnect', function () {
-            // sth goes here
-            if (!_.isUndefined(socket.room)) {
-                socket.leave(socket.room);
-                rooms[socket.room].players = _.without(rooms[socket.room].players, _.findWhere(rooms[socket.room].players, clientPlayer));
-            }
-        });
-    });
+            // Disconnect
+            socket.on('disconnect', function () {
+                // sth goes here
+                if (!_.isUndefined(socket.room)) {
+                    socket.leave(socket.room);
+                    rooms[socket.room].players = _.without(rooms[socket.room].players, _.findWhere(rooms[socket.room].players, {socketId: socket.id}));
+                }
+                console.log(rooms);
+            });
+        }
+    )
+    ;
 
     return router;
 };
