@@ -42,6 +42,11 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         }
     });
 
+    $('#exit-room').on('touchstart, click', function () {
+        alert('dâdadad');
+        socket.emit('exit game', currentRoom, clientPlayer);
+    });
+
     socket.on('players changed', function (room, player, players) {
         currentRoom = room;
         clientPlayer = player;
@@ -128,14 +133,18 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
                 score += timeRemaining;
                 $('.point').html(score);
                 // End game
-                socket.emit('game over', currentRoom);
                 gameOver('Congrats! Winner!');
+                $('#continue-play').on('touchstart, click', function () {
+                    socket.emit('game over', currentRoom);
+                });
             }
         } else if (lostPlayer !== null && checkedWord === null && _.size(players) == 0) { // Incorrect result from last player --> loser
             if (socketID == lostPlayer.socketId) {
                 $('.game_over .modal-title').html('Congrats! You almost won!');
-                socket.emit('game over', currentRoom);
                 gameOver('Congrats! Loser!');
+                $('#continue-play').on('touchstart, click', function () {
+                    socket.emit('game over', currentRoom);
+                });
             }
         }
     });
@@ -219,7 +228,8 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             }
             timeRemaining = seconds--;
             countDownTimeout = setTimeout(function () {
-                if (seconds <= 3) ion.sound.play('tap');
+                if (seconds <= 3)
+                    ion.sound.play('tap');
                 startCountDown(seconds);
             }, 1000);
         }
@@ -269,4 +279,6 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         }, 500);
         console.log(error);
     }
+
+
 })(jQuery);
