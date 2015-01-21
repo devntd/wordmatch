@@ -147,6 +147,18 @@ module.exports = function (io) {
         return numberRan;
     }
 
+    function returnRoom(rooms) {
+        for (var roomName in rooms) {
+            if (rooms.hasOwnProperty(roomName)) {
+                var players = rooms[roomName].players;
+                if (_.size(players) < 2 && rooms[roomName].status == 0) {
+                    return [roomName, players];
+                }
+            }
+        }
+        return [];
+    }
+
     io.on("connection", function (socket) {
             // Player request to join, start game when enough players
             socket.on('join game', function (name) {
@@ -162,27 +174,6 @@ module.exports = function (io) {
                     console.log(rooms);
                     io.sockets.in(socket.room).emit('players changed', id, player, rooms[id]);
                 } else {
-
-                    //for (var roomName in rooms) {
-                    //    //if (rooms.hasOwnProperty(roomName)) {
-                    //    //    var players = rooms[roomName].players;
-                    //    //    if (_.size(players) < 2 && rooms[roomName].status == 0) {
-                    //    //        socket.room = roomName;
-                    //    //        socket.join(socket.room);
-                    //    //        players.push(player);
-                    //    //        // Players number changed
-                    //    //        io.sockets.in(socket.room).emit('players changed', roomName, player, players);
-                    //    //        // Enough players, let's play
-                    //    //        if (_.size(players) == 2) {
-                    //    //            rooms[roomName].status = 1;
-                    //    //            io.sockets.in(socket.room).emit('play game', roomName, players, randomChar());
-                    //    //        }
-                    //    //        console.log('Join room: ');
-                    //    //        console.log(rooms);
-                    //    //        break;
-                    //    //    }
-                    //    //}
-                    //}
                     if (_.isEmpty(returnRoom(rooms))) {
                         var id = uuid.v4();
                         socket.room = id;
@@ -211,17 +202,14 @@ module.exports = function (io) {
                     }
                 }
             });
-            function returnRoom(rooms) {
-                for (var roomName in rooms) {
-                    if (rooms.hasOwnProperty(roomName)) {
-                        var players = rooms[roomName].players;
-                        if (_.size(players) < 2 && rooms[roomName].status == 0) {
-                            return [roomName, players];
-                        }
-                    }
+
+            socket.on('game over', function (roomName) {
+                if (_.size(rooms[roomName].players) == 2) {
+                    io.sockets.in(roomName).emit('play game', roomName, rooms[roomName].players, randomChar());
+                } else {
+                    rooms[roomName].status = 0;
                 }
-                return [];
-            }
+            });
 
             // Players send their words
             socket.on('send word', function (roomName, players, sentWord) {
@@ -269,8 +257,7 @@ module.exports = function (io) {
                 console.log(rooms);
             });
         }
-    )
-    ;
+    );
 
     return router;
 };

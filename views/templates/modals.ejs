@@ -8,35 +8,57 @@
             </div>
             <div class="modal-body">
                 <h4>Single Player</h4>
+
                 <div class="radio">
                     <label>
-                        <input type="radio" name="optionsRadios" id="optionsRadios1" value="normal" <% if(gamePlay == 'normal'){ %>checked<% } %>>Normal Play
+                        <input type="radio" name="optionsRadios" id="optionsRadios1" value="normal" <% if(gamePlay == 'normal'){ %>checked
+                                <% } %>
+                                >Normal Play
                     </label>
                 </div>
                 <div class="radio">
                     <label>
-                        <input type="radio" name="optionsRadios" id="optionsRadios2" value="random" <% if(gamePlay == 'random'){ %>checked<% } %>>Random Play
+                        <input type="radio" name="optionsRadios" id="optionsRadios2" value="random" <% if(gamePlay == 'random'){ %>checked
+                                <% } %>
+                                >Random Play
                     </label>
                 </div>
                 <hr>
                 <h4>Multiple Player</h4>
+
                 <div class="radio">
                     <label>
-                        <input type="radio" name="optionsRadios" id="optionsRadios3" value="multiplayer" <% if(gamePlay == 'multiplayer'){ %>checked<% } %>>Multiplayer
+                        <input type="radio" name="optionsRadios" id="optionsRadios3" value="multiplayer" <% if(gamePlay == 'multiplayer'){ %>checked
+                                <% } %>
+                                >Multiplayer
                     </label>
+
                     <div class="setting-multiplayer">
                         <input id="name-player" type="text" class="form-control" placeholder="<%= playerName %>">
                         <span id="name-player-tooltip" class="tooltip"></span>
+
                         <div class="radio">
                             <span>Number of players</span>
                             <label class="radio-inline">
-                                <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="2" <% if(playerNumber == 2){ %> checked <% }%>> 2
+                                <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="2"
+                                        <% if(playerNumber == 2){ %>
+                                       checked
+                                        <% } %>
+                                        > 2
                             </label>
                             <label class="radio-inline">
-                                <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="3" <% if(playerNumber == 3){ %> checked <% }%>> 3
+                                <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="3"
+                                        <% if(playerNumber == 3){ %>
+                                       checked
+                                        <% } %>
+                                        > 3
                             </label>
                             <label class="radio-inline">
-                                <input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="4" <% if(playerNumber == 4){ %> checked <% }%>> 4
+                                <input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="4"
+                                        <% if(playerNumber == 4){ %>
+                                       checked
+                                        <% } %>
+                                        > 4
                             </label>
                         </div>
                     </div>
@@ -68,6 +90,17 @@
                     <!--<div class="share-button google" data-href=""><i class="fa fa-google-plus"></i>&nbsp;&nbsp;Share on Google Plus</div>
                     <div class="share-button twitter" data-href=""><i class="fa fa-twitter"></i>&nbsp;&nbsp;Share on Twitter</div>-->
                 </div>
+                <% if(gamePlay == 'multiplayer') { %>
+                <div class="multiplayer-button">
+                    <div class="button-holder col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <button type="button" class="btn btn-info continue-play">Continue to play</button>
+                    </div>
+                    <div class="button-holder col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <button type="button" class="btn btn-danger exit-room">Exit room</button>
+                    </div>
+                </div>
+                <span class="clearfix"></span>
+                <% } %>
                 <hr>
                 <div class="form-group player-name">
                     <input type="text" class="form-control" id="player-name-input" placeholder="<%= playerName %>">
@@ -97,9 +130,11 @@
             </div>
             <div class="modal-body">
                 <h3>About WordMatch</h3>
+
                 <p>This is a small game for finding out how many words you know and are able to remember within limited time. WordMatch contains both single-play and multi-play.</p>
                 <hr>
                 <h3>About Our Team - Omedia Group</h3>
+
                 <p>Omedia has young, creative and enthusiastic people. We make ideas become real products by absolute determination. We appreciate every feedback from users and we will try to make our products better and better.</p>
             </div>
             <div class="modal-footer">

@@ -3,7 +3,7 @@ var minScore = 0, playerHighScore = 0;
 (function ($) {
     // Init Score Board
     updateScoreBoard(null);
-    //$('.game_over').modal('show');
+    $('.game_over').modal('show');
     //updateScoreSuccess();
 
     // Load sounds

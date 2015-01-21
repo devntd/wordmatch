@@ -379,6 +379,18 @@ header .navbar-default ul li:hover {
     background: rgba(85, 172, 238, 0.9);
 }
 
+.multiplayer-button {
+    margin-top: 10px;
+}
+
+.multiplayer-button .button-holder {
+    margin-bottom: 5px;
+}
+
+.multiplayer-button button {
+    width: 100%;
+}
+
 .setting img:hover {
     cursor: pointer;
 }
@@ -426,6 +438,10 @@ table.joined-players td.active {
     color: #ffffff;
     text-shadow: 0 0 2px #ffffff;
     background-color: #79bbdb;
+}
+
+table.joined-players td.you-here {
+    font-style: italic;
 }
 
 table.joined-players td.lost {

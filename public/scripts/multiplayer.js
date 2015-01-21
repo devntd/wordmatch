@@ -31,7 +31,6 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     $('.start-game-play').on('touchstart, click', function () {
         // Store socketID and request to join game
         socketID = socket.io.engine.id;
-
         // Waiting status
         if (!$(this).hasClass('stop-game-play')) {
             $(this).addClass('stop-game-play').html('Stop');
@@ -47,13 +46,15 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         currentRoom = room;
         clientPlayer = player;
         $.each(players, function (index, player) {
-            $('.player-' + (index + 1)).html(player.name).addClass(player.socketId);
+            $('.player-' + (index + 1)).html(((socketID == player.socketId) ? '<i class="fa fa-user"></i>&nbsp;' : '') + player.name).addClass(player.socketId);
         });
     });
 
     socket.on('play game', function (roomName, players, firstChar) {
         // Reset score
         $('.point').html(score = 0);
+        $('.joined-player').removeClass('active lost');
+        $('.slide').removeClass('result-false result-true');
         // Hide play button
         $('.game_load').css('z-index', '0');
         // Clear and Init data
@@ -65,7 +66,26 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         currentPlayers = players;
         currentPlayer = currentPlayers[0];
         // Start game
-        startRound();
+        startRoundCountDown(SECONDS_OF_PENDING);
+    });
+
+    socket.on('play game again', function (roomName, players, firstChar) {
+        // Reset score
+        $('.point').html(score = 0);
+        $('.joined-player').removeClass('active lost');
+        $('.slide').removeClass('result-false result-true');
+        // Hide play button
+        $('.game_load').css('z-index', '0');
+        // Clear and Init data
+        passedWords.doClear();
+        inRoundFlag = true;
+        // Assign local data
+        currentRoom = roomName;
+        currentChar = firstChar;
+        currentPlayers = players;
+        currentPlayer = currentPlayers[0];
+        // Start game
+        startRoundCountDown(5);
     });
 
     socket.on('send result', function (roomName, players, randomChar, checkedWord, lostPlayer) {
@@ -104,17 +124,17 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             $('.joined-player.' + lostPlayer.socketId).addClass('lost');
             if (socketID == lostPlayer.socketId) {
                 $('.game_over .modal-title').html('Congrats! You won!');
-                socket.emit('game over');
                 // Set score
                 score += timeRemaining;
                 $('.point').html(score);
                 // End game
+                socket.emit('game over', currentRoom);
                 gameOver('Congrats! Winner!');
             }
         } else if (lostPlayer !== null && checkedWord === null && _.size(players) == 0) { // Incorrect result from last player --> loser
             if (socketID == lostPlayer.socketId) {
                 $('.game_over .modal-title').html('Congrats! You almost won!');
-                socket.emit('game over');
+                socket.emit('game over', currentRoom);
                 gameOver('Congrats! Loser!');
             }
         }
@@ -191,7 +211,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         if (typeof time == 'number') {
             // Count down
             var seconds = parseInt(time);
-            $('.mini').html(seconds);
+            if (seconds >= 0) $('.mini').html(seconds); // Not print signed number
             if (seconds === 0 && currentPlayer.socketId == socketID) {
                 ion.sound.play('bell_ring');
                 endRound();
@@ -201,6 +221,22 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             countDownTimeout = setTimeout(function () {
                 if (seconds <= 3) ion.sound.play('tap');
                 startCountDown(seconds);
+            }, 1000);
+        }
+    }
+
+    // Countdown before start game
+    function startRoundCountDown(time) {
+        if (typeof time == 'number') {
+            var seconds = parseInt(time);
+            if (seconds >= 0) $('.mini').html(seconds); // Not print signed number
+            if (seconds === 0) {
+                startRound();
+                return;
+            }
+            seconds--;
+            setTimeout(function () {
+                startRoundCountDown(seconds);
             }, 1000);
         }
     }
