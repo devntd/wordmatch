@@ -74,25 +74,6 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         startRoundCountDown(SECONDS_OF_PENDING);
     });
 
-    socket.on('play game again', function (roomName, players, firstChar) {
-        // Reset score
-        $('.point').html(score = 0);
-        $('.joined-player').removeClass('active lost');
-        $('.slide').removeClass('result-false result-true');
-        // Hide play button
-        $('.game_load').css('z-index', '0');
-        // Clear and Init data
-        passedWords.doClear();
-        inRoundFlag = true;
-        // Assign local data
-        currentRoom = roomName;
-        currentChar = firstChar;
-        currentPlayers = players;
-        currentPlayer = currentPlayers[0];
-        // Start game
-        startRoundCountDown(5);
-    });
-
     socket.on('send result', function (roomName, players, randomChar, checkedWord, lostPlayer) {
         // Clear timeout all players
         clearTimeout(countDownTimeout);

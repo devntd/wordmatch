@@ -139,6 +139,7 @@ module.exports = function (io) {
         }
     });
 
+    //
     function randomChar() {
         var numberRan;
         do {
@@ -147,6 +148,7 @@ module.exports = function (io) {
         return numberRan;
     }
 
+    // Check exits room has status is 0 and size less 2
     function returnRoom(rooms) {
         for (var roomName in rooms) {
             if (rooms.hasOwnProperty(roomName)) {
@@ -205,7 +207,7 @@ module.exports = function (io) {
 
             socket.on('game over', function (roomName) {
                 if (_.size(rooms[roomName].players) == 2) {
-                    io.sockets.in(roomName).emit('play game again', roomName, rooms[roomName].players, randomChar());
+                    io.sockets.in(roomName).emit('play game', roomName, rooms[roomName].players, randomChar());
                 } else {
                     rooms[roomName].status = 0;
                 }
