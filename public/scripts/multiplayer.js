@@ -43,7 +43,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     });
 
     $('#exit-room').on('touchstart, click', function () {
-        alert('dâdadad');
+        $(this).removeClass('stop-game-play').html('Play');
         socket.emit('exit game', currentRoom, clientPlayer);
     });
 
