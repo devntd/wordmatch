@@ -29,22 +29,24 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     });
 
     $('.start-game-play').on('touchstart, click', function () {
+        // Clear data for new game
+        clearData();
         // Store socketID and request to join game
         socketID = socket.io.engine.id;
         // Waiting status
         if (!$(this).hasClass('stop-game-play')) {
-            $(this).addClass('stop-game-play').html('Stop');
+            $(this).addClass('stop-game-play').html('Exit');
             socket.emit('join game', $.cookie('playerName'));
         } else {
             // Cancel game
             $(this).removeClass('stop-game-play').html('Play');
-            socket.emit('exit game', currentRoom, clientPlayer);
+            socket.emit('exit game', currentRoom, socketID);
         }
     });
 
     $('#exit-room').on('touchstart, click', function () {
-        $(this).removeClass('stop-game-play').html('Play');
-        socket.emit('exit game', currentRoom, clientPlayer);
+        $('.start-game-play').removeClass('stop-game-play').html('Play');
+        socket.emit('exit game', currentRoom, socketID);
     });
 
     socket.on('players changed', function (room, player, players) {
@@ -56,22 +58,17 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     });
 
     socket.on('play game', function (roomName, players, firstChar) {
-        // Reset score
-        $('.point').html(score = 0);
-        $('.joined-player').removeClass('active lost');
-        $('.slide').removeClass('result-false result-true');
+        // Clear data at start of game
+        clearData();
         // Hide play button
         $('.game_load').css('z-index', '0');
-        // Clear and Init data
-        passedWords.doClear();
+        // Set flag
         inRoundFlag = true;
         // Assign local data
         currentRoom = roomName;
         currentChar = firstChar;
         currentPlayers = players;
         currentPlayer = currentPlayers[0];
-        // Reload slider
-        bxSlider.reloadSlider();
         // Start game
         startRoundCountDown(SECONDS_OF_PENDING);
     });
@@ -99,7 +96,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             ion.sound.play('right_answer');
             // Start new round
             setTimeout(function () {
-                startRound(true);
+                startRound();
             }, 1000);
         } else if (lostPlayer !== null && checkedWord === null && _.size(players) > 0) { // Incorrect result --> next player
             // New round data
@@ -116,14 +113,15 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             } else {
                 // Start new round
                 setTimeout(function () {
-                    startRound(false);
+                    startRound();
                 }, 1000);
             }
         } else if (lostPlayer !== null && checkedWord !== null && _.size(players) == 0) { // Correct result from last player --> winner
-            $('.joined-player.' + lostPlayer.socketId).addClass('won');
+            $('.joined-player.' + lostPlayer.socketId).addClass('lost');
             $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-true');
             ion.sound.play('right_answer');
             if (socketID == lostPlayer.socketId) {
+                // Modal header
                 $('.game_over .modal-title').html('Congrats! You won!');
                 // Set score
                 score += timeRemaining;
@@ -138,6 +136,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
             ion.sound.play('wrong_answer');
             if (socketID == lostPlayer.socketId) {
+                // Modal header
                 $('.game_over .modal-title').html('Congrats! You almost won!');
                 gameOver('Congrats! Loser!');
                 $('#continue-play').on('touchstart, click', function () {
@@ -162,6 +161,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         }
     });
 
+    // Update word being typed
     socket.on('send typing', function (text) {
         if (currentPlayer.socketId != socketID) $('#word_text').val(text);
     });
@@ -192,8 +192,20 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         }
     }
 
+    // Clear start data
+    function clearData() {
+        // Reset score
+        $('.point').html(score = 0);
+        $('.joined-player').removeClass('active lost');
+        $('.slide').removeClass('result-false result-true');
+        // Clear and Init data
+        passedWords.doClear();
+        // Reload slider
+        bxSlider.reloadSlider();
+    }
+
     // x3
-    function startRound(status) {
+    function startRound() {
         // Each time start
         var currentSlide = bxSlider.getCurrentSlide();
         $('.slide:nth-child(' + (currentSlide + 2) + ')').removeClass(function () {
@@ -234,7 +246,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             var seconds = parseInt(time);
             if (seconds >= 0) $('.mini').html(seconds); // Not print signed number
             if (seconds === 0) {
-                startRound(null);
+                startRound();
                 return;
             }
             seconds--;
@@ -270,6 +282,4 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         }, 500);
         console.log(error);
     }
-
-
 })(jQuery);
