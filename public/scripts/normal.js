@@ -65,7 +65,7 @@ var passedWords = [], score = 0, timeRemaining;
                     char.current = char.next;
                     char.next = nextChar(char.current);
                     passedWords.push(text);
-                    ion.sound.play('right_answer');
+                    if ($.cookie('mute') == 0) ion.sound.play('right_answer');
 
                     // Set preview
                     $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-true');
@@ -117,13 +117,13 @@ var passedWords = [], score = 0, timeRemaining;
             var seconds = parseInt(time);
             $('.mini').html(seconds);
             if (seconds == 0) {
-                ion.sound.play('bell_ring');
+                if ($.cookie('mute') == 0) ion.sound.play('bell_ring');
                 endRound();
                 return;
             }
             timeRemaining = seconds--;
             countDownTimeout = setTimeout(function () {
-                if (seconds <= 3) ion.sound.play('tap');
+                if (seconds <= 3 && $.cookie('mute') == 0) ion.sound.play('tap');
                 startCountDown(seconds);
             }, 1000);
         }
@@ -163,7 +163,7 @@ var passedWords = [], score = 0, timeRemaining;
 
     // x2
     function gameOver(error) {
-        ion.sound.play('wrong_answer');
+        if ($.cookie('mute') == 0) ion.sound.play('wrong_answer');
         $('.game_load').css('z-index', '888');
         setTimeout(function () {
             $('.game_over').modal('show').find('.your-score').html(score);

@@ -11,7 +11,8 @@ module.exports = function (io) {
     var setting = {
         gamePlay: 'random',
         playerNumber: 4,
-        playerName: 'Player'
+        playerName: 'Player',
+        mute: 0
     };
 
     var rooms = {};
@@ -24,6 +25,13 @@ module.exports = function (io) {
             } else {
                 req.session.gamePlay = setting.gamePlay;
                 res.cookie('gamePlay', setting.gamePlay);
+            }
+
+            if (req.cookies.mute) {
+                req.session.mute = req.cookies.mute;
+            } else {
+                req.session.mute = setting.mute;
+                res.cookie('mute', setting.mute);
             }
 
             if (req.cookies.playerNumber) {
@@ -45,21 +53,24 @@ module.exports = function (io) {
                     title: 'Word Match - Random',
                     gamePlay: req.session.gamePlay,
                     playerNumber: req.session.playerNumber,
-                    playerName: req.session.playerName
+                    playerName: req.session.playerName,
+                    mute: req.session.mute
                 })
             } else if (req.session.gamePlay === 'normal') {
                 res.render('index', {
                     title: 'Word Match - Normal',
                     gamePlay: req.session.gamePlay,
                     playerNumber: req.session.playerNumber,
-                    playerName: req.session.playerName
+                    playerName: req.session.playerName,
+                    mute: req.session.mute
                 })
             } else {
                 res.render('index', {
                     title: 'Word Match - Multiplayer',
                     gamePlay: req.session.gamePlay,
                     playerNumber: req.session.playerNumber,
-                    playerName: req.session.playerName
+                    playerName: req.session.playerName,
+                    mute: req.session.mute
                 });
             }
         }
@@ -182,7 +193,7 @@ module.exports = function (io) {
                         socket.join(socket.room);
                         var room = [];
                         room.push(player);
-                        rooms[id] = {'players': room, 'status': 0};
+                        rooms[id] = {'players': room, 'status': 0, nowPlaying: []};
                         console.log('Create room: ');
                         console.log(rooms);
                         io.sockets.in(socket.room).emit('players changed', id, player, rooms[id]);
@@ -197,6 +208,7 @@ module.exports = function (io) {
                         // Enough players, let's play
                         if (_.size(players) == 2) {
                             rooms[socket.room].status = 1;
+                            rooms[socket.room].nowPlaying = players;
                             io.sockets.in(socket.room).emit('play game', socket.room, players, randomChar());
                         }
                         console.log('join room: ');
@@ -222,12 +234,14 @@ module.exports = function (io) {
                     } else if (queriedWord) {
                         if (_.size(players) === 1) {
                             loser = players.pop();
+                            rooms[roomName].nowPlaying = players;
                             io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), queriedWord, loser);
                         } else {
                             io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), queriedWord, null);
                         }
                     } else {
                         loser = players.pop();
+                        rooms[roomName].nowPlaying = players;
                         io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), null, loser);
                     }
                 });
@@ -253,7 +267,7 @@ module.exports = function (io) {
                     rooms[roomName].players = _.without(rooms[roomName].players, _.findWhere(rooms[roomName].players, {socketId: socketIdClient}));
                     //console.log('Room after exit');
                     //console.log(rooms[roomName].players);
-                    rooms[roomName].status = 0;
+                    
                 }
             });
 
@@ -261,9 +275,15 @@ module.exports = function (io) {
             socket.on('disconnect', function () {
                 // sth goes here
                 if (!_.isUndefined(socket.room)) {
+                    if(rooms[socket.room].status==1){
+                        rooms[socket.room].nowPlaying.push(rooms[socket.room].nowPlaying.shift());
+                        var loser = rooms[socket.room].nowPlaying.pop();
+                        io.sockets.in(socket.room).emit('send result', socket.room, rooms[socket.room].nowPlaying, randomChar(), null, loser);
+                    }
                     rooms[socket.room].players = _.without(rooms[socket.room].players, _.findWhere(rooms[socket.room].players, {socketId: socket.id}));
-                    rooms[socket.room].status = 0;
+                    console.log(rooms[socket.room]);
                     socket.leave(socket.room);
+
                 }
             });
         }

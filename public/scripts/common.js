@@ -39,6 +39,19 @@ var minScore = 0, playerHighScore = 0;
         }
     });
 
+    $('.setting-volume img').attr('src', function () {
+        if ($.cookie('mute') == 0) return 'images/volume_on.png';
+        return 'images/volume_off.png';
+    }).on('touchstart, click', function () {
+        if ($.cookie('mute') == 0) {
+            $(this).attr('src', 'images/volume_off.png');
+            $.cookie('mute', 1);
+        } else {
+            $(this).attr('src', 'images/volume_on.png');
+            $.cookie('mute', 0);
+        }
+    });
+
     $('#name-player').keyup(function () {
         $('#name-player-tooltip').tooltipster('hide');
     });

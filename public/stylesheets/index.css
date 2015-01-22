@@ -211,16 +211,18 @@ header .navbar-default ul li:hover {
 
 .setting {
     position: absolute;
-    left: -16px;
-    top: -20px;
+    left: -5px;
+    top: -5px;
     z-index: 999;
+    width: 55px;
 }
 
 .setting-volume {
     position: absolute;
-    left: -16px;
-    bottom: -23px;
+    left: -7px;
+    bottom: -7px;
     z-index: 999;
+    width: 55px;
 }
 
 .setting img:hover, .setting-volume img:hover {

@@ -36,11 +36,11 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         // Waiting status
         if (!$(this).hasClass('stop-game-play')) {
             $(this).addClass('stop-game-play').html('Exit');
-            ion.sound.play('smb_kick');
+            if ($.cookie('mute') == 0) ion.sound.play('smb_kick');
             socket.emit('join game', $.cookie('playerName'));
         } else {
             // Cancel game
-            ion.sound.play('smb_pause');
+            if ($.cookie('mute') == 0) ion.sound.play('smb_pause');
             $(this).removeClass('stop-game-play').html('Play');
             socket.emit('exit game', currentRoom, socketID);
         }
@@ -52,7 +52,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     });
 
     socket.on('players changed', function (room, player, players) {
-        if (socketID != player.socketId)   ion.sound.play('smb_1-up');
+        if (socketID != player.socketId && $.cookie('mute') == 0) ion.sound.play('smb_1-up');
         currentRoom = room;
         clientPlayer = player;
         $.each(players, function (index, player) {
@@ -96,7 +96,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             }
             // Set preview
             $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-true');
-            ion.sound.play('smb_coin');
+            if ($.cookie('mute') == 0) ion.sound.play('smb_coin');
             // Start new round
             setTimeout(function () {
                 startRound(true);
@@ -110,7 +110,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             $('.joined-player.' + lostPlayer.socketId).addClass('lost');
             $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
             if (socketID == lostPlayer.socketId) {
-                ion.sound.play('smb_mariodie');
+                if ($.cookie('mute') == 0) ion.sound.play('smb_mariodie');
                 $('.game_over .modal-title').html('You lost!');
                 gameOver('Word submitted does not exist! Game Over!');
             } else {
@@ -122,7 +122,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         } else if (lostPlayer !== null && checkedWord !== null && _.size(players) == 0) { // Correct result from last player --> winner
             $('.joined-player.' + lostPlayer.socketId).addClass('lost');
             $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-true');
-            ion.sound.play('smb_coin');
+            if ($.cookie('mute') == 0) ion.sound.play('smb_coin');
             if (socketID == lostPlayer.socketId) {
                 $('.game_over .modal-title').html('Congrats! You won!');
                 // Set score
@@ -130,14 +130,14 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
                 $('.point').html(score);
                 // End game
                 gameOver('Congrats! Winner!');
-                ion.sound.play('smb_stage_clear');
+                if ($.cookie('mute') == 0) ion.sound.play('smb_stage_clear');
                 $('#continue-play').on('touchstart, click', function () {
                     socket.emit('game over', currentRoom);
                 });
             }
         } else if (lostPlayer !== null && checkedWord === null && _.size(players) == 0) { // Incorrect result from last player --> loser
             $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
-            ion.sound.play('smb_mariodie');
+            if ($.cookie('mute') == 0) ion.sound.play('smb_mariodie');
             if (socketID == lostPlayer.socketId) {
                 $('.game_over .modal-title').html('Congrats! You almost won!');
                 gameOver('Congrats! Loser!');
@@ -228,14 +228,13 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             var seconds = parseInt(time);
             if (seconds >= 0) $('.mini').html(seconds); // Not print signed number
             if (seconds === 0 && currentPlayer.socketId == socketID) {
-                ion.sound.play('bell_ring');
+                if ($.cookie('mute') == 0) ion.sound.play('bell_ring');
                 endRound();
                 return;
             }
             timeRemaining = seconds--;
             countDownTimeout = setTimeout(function () {
-                if (seconds <= 3)
-                    ion.sound.play('tap');
+                if (seconds <= 3 && $.cookie('mute') == 0) ion.sound.play('tap');
                 startCountDown(seconds);
             }, 1000);
         }
@@ -252,7 +251,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             }
             seconds--;
             setTimeout(function () {
-                ion.sound.play('tap');
+                if ($.cookie('mute') == 0) ion.sound.play('tap');
                 startRoundCountDown(seconds);
             }, 1000);
         }
