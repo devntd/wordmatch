@@ -249,6 +249,7 @@ module.exports = function (io) {
                     rooms[roomName].players = _.without(rooms[roomName].players, _.findWhere(rooms[roomName].players, clientPlayer));
                     rooms[roomName].status = 0;
                 }
+                console.log('Disconnect');
                 console.log(rooms);
             });
 
@@ -256,9 +257,11 @@ module.exports = function (io) {
             socket.on('disconnect', function () {
                 // sth goes here
                 if (!_.isUndefined(socket.room)) {
-                    socket.leave(socket.room);
                     rooms[socket.room].players = _.without(rooms[socket.room].players, _.findWhere(rooms[socket.room].players, {socketId: socket.id}));
+                    rooms[socket.room].status = 0;
+                    socket.leave(socket.room);
                 }
+                console.log('Disconnect');
                 console.log(rooms);
             });
         }

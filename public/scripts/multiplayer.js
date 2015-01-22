@@ -70,6 +70,8 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         currentChar = firstChar;
         currentPlayers = players;
         currentPlayer = currentPlayers[0];
+        // Reload slider
+        bxSlider.reloadSlider();
         // Start game
         startRoundCountDown(SECONDS_OF_PENDING);
     });
@@ -77,6 +79,8 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     socket.on('send result', function (roomName, players, randomChar, checkedWord, lostPlayer) {
         // Clear timeout all players
         clearTimeout(countDownTimeout);
+        // Current slide
+        var currentSlide = bxSlider.getCurrentSlide();
         // Check result
         if (lostPlayer === null && checkedWord !== null && _.size(players) > 0) { // Correct result --> next player
             // New round data
@@ -90,8 +94,13 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
                 score += timeRemaining;
                 $('.point').html(score);
             }
+            // Set preview
+            $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-true');
+            ion.sound.play('right_answer');
             // Start new round
-            startRound();
+            setTimeout(function () {
+                startRound(true);
+            }, 1000);
         } else if (lostPlayer !== null && checkedWord === null && _.size(players) > 0) { // Incorrect result --> next player
             // New round data
             currentChar = randomChar;
@@ -99,15 +108,21 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             currentPlayer = currentPlayers[0];
             // Highlight loser
             $('.joined-player.' + lostPlayer.socketId).addClass('lost');
+            $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
+            ion.sound.play('wrong_answer');
             if (socketID == lostPlayer.socketId) {
                 $('.game_over .modal-title').html('You lost!');
                 gameOver('Word submitted does not exist! Game Over!');
             } else {
                 // Start new round
-                startRound();
+                setTimeout(function () {
+                    startRound(false);
+                }, 1000);
             }
         } else if (lostPlayer !== null && checkedWord !== null && _.size(players) == 0) { // Correct result from last player --> winner
-            $('.joined-player.' + lostPlayer.socketId).addClass('lost');
+            $('.joined-player.' + lostPlayer.socketId).addClass('won');
+            $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-true');
+            ion.sound.play('right_answer');
             if (socketID == lostPlayer.socketId) {
                 $('.game_over .modal-title').html('Congrats! You won!');
                 // Set score
@@ -120,6 +135,8 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
                 });
             }
         } else if (lostPlayer !== null && checkedWord === null && _.size(players) == 0) { // Incorrect result from last player --> loser
+            $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
+            ion.sound.play('wrong_answer');
             if (socketID == lostPlayer.socketId) {
                 $('.game_over .modal-title').html('Congrats! You almost won!');
                 gameOver('Congrats! Loser!');
@@ -176,17 +193,12 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     }
 
     // x3
-    function startRound() {
+    function startRound(status) {
         // Each time start
         var currentSlide = bxSlider.getCurrentSlide();
-        $('.slide:nth-child(' + (currentSlide + 2) + ')').html(String.fromCharCode(currentChar)).removeClass(function () {
-            if (currentSlide === 0) return 'result-true';
-        });
-        /*setTimeout(function () {
-         $('.slide:nth-child(' + (currentSlide + 3) + ')').html(String.fromCharCode(char.next)).removeClass(function () {
-         if (currentSlide === 0) return 'result-true';
-         });
-         }, 1000);*/
+        $('.slide:nth-child(' + (currentSlide + 2) + ')').removeClass(function () {
+            if (currentSlide === 0) return 'result-true result-false';
+        }).html(String.fromCharCode(currentChar));
         // Change current user highlight
         $('.joined-player').removeClass('active');
         $('.joined-player.' + currentPlayer.socketId).addClass('active');
@@ -222,7 +234,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             var seconds = parseInt(time);
             if (seconds >= 0) $('.mini').html(seconds); // Not print signed number
             if (seconds === 0) {
-                startRound();
+                startRound(null);
                 return;
             }
             seconds--;
@@ -252,8 +264,6 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     // x3
     function gameOver(error) {
         // Client's UI
-        $('.slide:nth-child(' + (bxSlider.getCurrentSlide() + 2) + ')').addClass('result-false');
-        ion.sound.play('wrong_answer');
         $('.game_load').css('z-index', '888');
         setTimeout(function () {
             $('.game_over').modal('show').find('.your-score').html(score);
