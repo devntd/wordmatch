@@ -36,9 +36,11 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         // Waiting status
         if (!$(this).hasClass('stop-game-play')) {
             $(this).addClass('stop-game-play').html('Exit');
+            ion.sound.play('smb_kick');
             socket.emit('join game', $.cookie('playerName'));
         } else {
             // Cancel game
+            ion.sound.play('smb_pause');
             $(this).removeClass('stop-game-play').html('Play');
             socket.emit('exit game', currentRoom, socketID);
         }
@@ -50,6 +52,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     });
 
     socket.on('players changed', function (room, player, players) {
+        if (socketID != player.socketId)   ion.sound.play('smb_1-up');
         currentRoom = room;
         clientPlayer = player;
         $.each(players, function (index, player) {
@@ -93,10 +96,10 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             }
             // Set preview
             $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-true');
-            ion.sound.play('right_answer');
+            ion.sound.play('smb_coin');
             // Start new round
             setTimeout(function () {
-                startRound();
+                startRound(true);
             }, 1000);
         } else if (lostPlayer !== null && checkedWord === null && _.size(players) > 0) { // Incorrect result --> next player
             // New round data
@@ -106,37 +109,36 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             // Highlight loser
             $('.joined-player.' + lostPlayer.socketId).addClass('lost');
             $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
-            ion.sound.play('wrong_answer');
             if (socketID == lostPlayer.socketId) {
+                ion.sound.play('smb_mariodie');
                 $('.game_over .modal-title').html('You lost!');
                 gameOver('Word submitted does not exist! Game Over!');
             } else {
                 // Start new round
                 setTimeout(function () {
-                    startRound();
+                    startRound(false);
                 }, 1000);
             }
         } else if (lostPlayer !== null && checkedWord !== null && _.size(players) == 0) { // Correct result from last player --> winner
             $('.joined-player.' + lostPlayer.socketId).addClass('lost');
             $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-true');
-            ion.sound.play('right_answer');
+            ion.sound.play('smb_coin');
             if (socketID == lostPlayer.socketId) {
-                // Modal header
                 $('.game_over .modal-title').html('Congrats! You won!');
                 // Set score
                 score += timeRemaining;
                 $('.point').html(score);
                 // End game
                 gameOver('Congrats! Winner!');
+                ion.sound.play('smb_stage_clear');
                 $('#continue-play').on('touchstart, click', function () {
                     socket.emit('game over', currentRoom);
                 });
             }
         } else if (lostPlayer !== null && checkedWord === null && _.size(players) == 0) { // Incorrect result from last player --> loser
             $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
-            ion.sound.play('wrong_answer');
+            ion.sound.play('smb_mariodie');
             if (socketID == lostPlayer.socketId) {
-                // Modal header
                 $('.game_over .modal-title').html('Congrats! You almost won!');
                 gameOver('Congrats! Loser!');
                 $('#continue-play').on('touchstart, click', function () {
@@ -161,7 +163,6 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         }
     });
 
-    // Update word being typed
     socket.on('send typing', function (text) {
         if (currentPlayer.socketId != socketID) $('#word_text').val(text);
     });
@@ -205,7 +206,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     }
 
     // x3
-    function startRound() {
+    function startRound(status) {
         // Each time start
         var currentSlide = bxSlider.getCurrentSlide();
         $('.slide:nth-child(' + (currentSlide + 2) + ')').removeClass(function () {
@@ -246,11 +247,12 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             var seconds = parseInt(time);
             if (seconds >= 0) $('.mini').html(seconds); // Not print signed number
             if (seconds === 0) {
-                startRound();
+                startRound(null);
                 return;
             }
             seconds--;
             setTimeout(function () {
+                ion.sound.play('tap');
                 startRoundCountDown(seconds);
             }, 1000);
         }

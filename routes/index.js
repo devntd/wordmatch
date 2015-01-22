@@ -243,14 +243,18 @@ module.exports = function (io) {
             });
 
             // exit game
-            socket.on('exit game', function (roomName, clientPlayer) {
-                if (!_.isEmpty(rooms[roomName].players) && !_.isUndefined(socket.room)) {
+            socket.on('exit game', function (roomName, socketIdClient) {
+                if (!_.isEmpty(rooms[roomName].players)) {
+                    //console.log('client click exit');
+                    //console.log(socketIdClient);
+                    //console.log('Room before exit');
+                    //console.log(rooms[roomName].players);
                     socket.leave(roomName);
-                    rooms[roomName].players = _.without(rooms[roomName].players, _.findWhere(rooms[roomName].players, clientPlayer));
+                    rooms[roomName].players = _.without(rooms[roomName].players, _.findWhere(rooms[roomName].players, {socketId: socketIdClient}));
+                    //console.log('Room after exit');
+                    //console.log(rooms[roomName].players);
                     rooms[roomName].status = 0;
                 }
-                console.log('Disconnect');
-                console.log(rooms);
             });
 
             // Disconnect
@@ -261,8 +265,6 @@ module.exports = function (io) {
                     rooms[socket.room].status = 0;
                     socket.leave(socket.room);
                 }
-                console.log('Disconnect');
-                console.log(rooms);
             });
         }
     );

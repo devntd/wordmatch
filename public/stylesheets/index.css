@@ -9,6 +9,12 @@ header {
     background: #ffffff;
 }
 
+.navbar-nav > li > a {
+    padding-top: 10px;
+    padding-bottom: 0px;
+
+}
+
 .container {
     margin-top: 25px;
 }
@@ -91,7 +97,6 @@ header .navbar-default ul li:hover {
 
 .social_tt {
     display: inline-block;
-    margin: 5px 10px;
 }
 
 .social_google {
@@ -131,7 +136,7 @@ header .navbar-default ul li:hover {
 }
 
 .bx-wrapper {
-    margin: 40px auto 55px;
+    margin: 40px auto 60px;
 }
 
 .next_content span {
@@ -206,9 +211,20 @@ header .navbar-default ul li:hover {
 
 .setting {
     position: absolute;
-    left: -8px;
-    top: -23px;
+    left: -16px;
+    top: -20px;
     z-index: 999;
+}
+
+.setting-volume {
+    position: absolute;
+    left: -16px;
+    bottom: -23px;
+    z-index: 999;
+}
+
+.setting img:hover, .setting-volume img:hover {
+    cursor: pointer;
 }
 
 .score {
@@ -391,10 +407,6 @@ header .navbar-default ul li:hover {
     width: 100%;
 }
 
-.setting img:hover {
-    cursor: pointer;
-}
-
 .player-name {
     margin-top: 15px;
     position: relative;
@@ -455,6 +467,11 @@ table.joined-players td.won {
     color: #26d900;
 }
 
+table.joined-players td.almost-won {
+    font-weight: normal;
+    color: #FFA500;
+}
+
 .commentbox > span, .commentbox .comments {
     display: block;
     background: none repeat scroll 0 0 rgba(255, 255, 255, 0.5);
@@ -473,6 +490,10 @@ table.joined-players td.won {
 
 input[name=optionsRadios], input[name=inlineRadioOptions] {
     margin: 0;
+}
+
+#mute {
+    margin-top: 0;
 }
 
 @media (min-width: 1920px) {
@@ -672,15 +693,19 @@ input[name=optionsRadios], input[name=inlineRadioOptions] {
     }
 
     .setting {
-        width: 30px;
+        width: 40px;
         position: absolute;
-        left: -1px;
-        top: -12px;
+        left: -7px;
+        top: -20px;
         z-index: 999;
     }
 
-    .setting img {
-        width: 100%;
+    .setting-volume {
+        width: 40px;
+        position: absolute;
+        left: -7px;
+        bottom: -25px;
+        z-index: 999;
     }
 
     .score span {

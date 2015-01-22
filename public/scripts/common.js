@@ -10,7 +10,7 @@ var minScore = 0, playerHighScore = 0;
 
     // ScrollTop when focus
     $('#word_text').on('focus', function () {
-        if ($(window).width() <= 767) $(window).scrollTop($('.game-control').offset().top);
+        if ($(window).width() <= 767) $(window).scrollTop($('.game-control').offset().top - 40);
     });
 
     // Tooltip
