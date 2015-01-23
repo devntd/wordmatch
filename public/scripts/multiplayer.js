@@ -47,7 +47,9 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     });
 
     $('#exit-room').on('touchstart, click', function () {
+        if ($.cookie('mute') == 0) ion.sound.play('smb_pause');
         $('.start-game-play').removeClass('stop-game-play').html('Play');
+        clearData();
         socket.emit('exit game', currentRoom, socketID);
     });
 
@@ -99,7 +101,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             if ($.cookie('mute') == 0) ion.sound.play('smb_coin');
             // Start new round
             setTimeout(function () {
-                startRound(true);
+                startRound();
             }, 1000);
         } else if (lostPlayer !== null && checkedWord === null && _.size(players) > 0) { // Incorrect result --> next player
             // New round data
@@ -116,11 +118,11 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             } else {
                 // Start new round
                 setTimeout(function () {
-                    startRound(false);
+                    startRound();
                 }, 1000);
             }
         } else if (lostPlayer !== null && checkedWord !== null && _.size(players) == 0) { // Correct result from last player --> winner
-            $('.joined-player.' + lostPlayer.socketId).addClass('lost');
+            $('.joined-player.' + lostPlayer.socketId).addClass('won');
             $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-true');
             if ($.cookie('mute') == 0) ion.sound.play('smb_coin');
             if (socketID == lostPlayer.socketId) {
@@ -136,6 +138,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
                 });
             }
         } else if (lostPlayer !== null && checkedWord === null && _.size(players) == 0) { // Incorrect result from last player --> loser
+            $('.joined-player.' + lostPlayer.socketId).addClass('almost-won');
             $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
             if ($.cookie('mute') == 0) ion.sound.play('smb_mariodie');
             if (socketID == lostPlayer.socketId) {
@@ -198,7 +201,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         // Reset score
         $('.point').html(score = 0);
         $('.joined-player').removeClass('active lost');
-        $('.slide').removeClass('result-false result-true');
+        $('.slide').removeClass('result-false result-true').html('-');
         // Clear and Init data
         passedWords.doClear();
         // Reload slider
@@ -206,7 +209,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     }
 
     // x3
-    function startRound(status) {
+    function startRound() {
         // Each time start
         var currentSlide = bxSlider.getCurrentSlide();
         $('.slide:nth-child(' + (currentSlide + 2) + ')').removeClass(function () {
@@ -246,7 +249,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             var seconds = parseInt(time);
             if (seconds >= 0) $('.mini').html(seconds); // Not print signed number
             if (seconds === 0) {
-                startRound(null);
+                startRound();
                 return;
             }
             seconds--;
