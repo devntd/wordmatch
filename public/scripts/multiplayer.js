@@ -91,6 +91,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
             currentPlayer = currentPlayers[0];
             // Push passed word into stack
             passedWords.push(checkedWord);
+            console.log(passedWords);
             // Set score to the last player (after swap)
             if (socketID == players[players.length - 1].socketId) {
                 score += timeRemaining;
@@ -200,7 +201,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     function clearData() {
         // Reset score
         $('.point').html(score = 0);
-        $('.joined-player').removeClass('active lost');
+        $('.joined-player').removeClass('active lost won almost-won');
         $('.slide').removeClass('result-false result-true').html('-');
         // Clear and Init data
         passedWords.doClear();

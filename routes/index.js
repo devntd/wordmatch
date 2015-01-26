@@ -235,9 +235,9 @@ module.exports = function (io) {
                         if (_.size(players) === 1) {
                             loser = players.pop();
                             rooms[roomName].nowPlaying = players;
-                            io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), queriedWord, loser);
+                            io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), queriedWord.toObject().word, loser);
                         } else {
-                            io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), queriedWord, null);
+                            io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), queriedWord.toObject().word, null);
                         }
                     } else {
                         loser = players.pop();
