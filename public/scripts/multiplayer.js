@@ -37,7 +37,7 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
         if (!$(this).hasClass('stop-game-play')) {
             $(this).addClass('stop-game-play').html('Exit');
             if ($.cookie('mute') == 0) ion.sound.play('smb_kick');
-            socket.emit('join game', $.cookie('playerName'));
+            socket.emit('join game', $.cookie('playerName'),$.cookie('playerNumber'));
         } else {
             // Cancel game
             if ($.cookie('mute') == 0) ion.sound.play('smb_pause');
