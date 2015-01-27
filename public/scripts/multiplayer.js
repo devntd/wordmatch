@@ -65,16 +65,12 @@ var defaultJoinedPlayers = null;
             currentRoom = room;
             clientPlayer = player;
         }
-        // Set joined-players table to default
         $('.joined-players').html(defaultJoinedPlayers);
         $.each(players, function (index, player) {
             $('.player-' + (index + 1)).html(((socketID == player.socketId) ? '<i class="fa fa-user"></i>&nbsp;' : '') + player.name).addClass(player.socketId);
         });
     });
 
-    socket.on('send exit', function (data) {
-        currentPlayers = data;
-    });
     socket.on('play game', function (roomName, players, firstChar) {
         // Clear data at start of game
         clearData();
@@ -104,7 +100,6 @@ var defaultJoinedPlayers = null;
             currentPlayer = currentPlayers[0];
             // Push passed word into stack
             passedWords.push(checkedWord);
-            console.log(passedWords);
             // Set score to the last player (after swap)
             if (socketID == players[players.length - 1].socketId) {
                 score += timeRemaining;

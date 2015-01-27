@@ -150,7 +150,7 @@ module.exports = function (io) {
         }
     });
 
-    //
+    // Get random char
     function randomChar() {
         var numberRan;
         do {
@@ -159,7 +159,7 @@ module.exports = function (io) {
         return numberRan;
     }
 
-    // Check exits room has status is 0 and size less 2
+    // Check exits room has status is 0 and size less 2 or less 4
     function returnRoom(rooms, playerNumber) {
         for (var roomName in rooms) {
             if (rooms.hasOwnProperty(roomName)) {
@@ -172,10 +172,10 @@ module.exports = function (io) {
         return [];
     }
 
+    // Open connection socket
     io.on("connection", function (socket) {
             // Player request to join, start game when enough players
             socket.on('join game', function (name, playerNumber) {
-                console.log(playerNumber);
                 var player = {'socketId': socket.id, 'name': name, 'status': 1};
                 if (_.isEmpty(rooms)) {
                     var id = uuid.v4();
@@ -184,8 +184,6 @@ module.exports = function (io) {
                     var room = [];
                     room.push(player);
                     rooms[id] = {'players': room, 'status': 0, 'nowPlaying': [], 'playerNumber': playerNumber};
-                    console.log('Create room: ');
-                    console.log(rooms);
                     io.sockets.in(socket.room).emit('players changed', id, player, rooms[id]);
                 } else {
                     if (_.isEmpty(returnRoom(rooms, playerNumber))) {
@@ -195,15 +193,12 @@ module.exports = function (io) {
                         var room = [];
                         room.push(player);
                         rooms[id] = {'players': room, 'status': 0, 'nowPlaying': [], 'playerNumber': playerNumber};
-                        console.log('Create room: ');
-                        console.log(rooms);
                         io.sockets.in(socket.room).emit('players changed', id, player, rooms[id]);
                     } else {
                         var listRoom = returnRoom(rooms, playerNumber);
                         var players = listRoom[1];
                         socket.room = listRoom[0];
                         socket.join(socket.room);
-                        console.log(players);
                         players.push(player);
                         // Players number changed
                         io.sockets.in(socket.room).emit('players changed', socket.room, player, players);
@@ -213,8 +208,6 @@ module.exports = function (io) {
                             rooms[socket.room].nowPlaying = players;
                             io.sockets.in(socket.room).emit('play game', socket.room, players, randomChar());
                         }
-                        console.log('join room: ');
-                        console.log(rooms);
                     }
                 }
             });
@@ -252,7 +245,8 @@ module.exports = function (io) {
 
             socket.on('wrong word', function (roomName, players) {
                 var lostPlayer = players.pop();
-                io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), null, lostPlayer);
+                rooms[roomName].nowPlaying = players;
+                io.sockets.in(roomName).emit('send result', roomName, rooms[roomName].nowPlaying, randomChar(), null, lostPlayer);
             });
 
             socket.on('typing', function (roomName, text) {
@@ -262,28 +256,16 @@ module.exports = function (io) {
             // exit game
             socket.on('exit game', function (roomName, socketIdClient) {
                 if (!_.isEmpty(rooms[roomName].players)) {
-                    //console.log('client click exit');
-                    //console.log(socketIdClient);
-                    //console.log('Room before exit');
-                    //console.log(rooms[roomName].players);
                     socket.leave(roomName);
                     rooms[roomName].players = _.without(rooms[roomName].players, _.findWhere(rooms[roomName].players, {socketId: socketIdClient}));
-                    //console.log('Room after exit');
-                    //console.log(rooms[roomName].players);
-                    console.log('da den day');
-                    console.log(rooms[roomName]);
-                    console.log(rooms[roomName].players);
                     io.sockets.in(roomName).emit('players changed', roomName, null, rooms[roomName].players);
                 }
             });
 
             // Disconnect
             socket.on('disconnect', function () {
-                // sth goes here
                 if (!_.isUndefined(socket.room)) {
                     var clientRoom = socket.room;
-                    console.log('First Disconnect');
-                    console.log(rooms[clientRoom]);
                     socket.leave(socket.room);
                     if (rooms[clientRoom].status == 1 && !_.isEmpty(rooms[clientRoom].nowPlaying)) {
                         if (socket.id == rooms[clientRoom].nowPlaying[0].socketId) {
