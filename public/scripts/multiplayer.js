@@ -60,15 +60,20 @@ var defaultJoinedPlayers = null;
     });
 
     socket.on('players changed', function (room, player, players) {
-        if (socketID != player.socketId && $.cookie('mute') == 0) ion.sound.play('smb_1-up');
-        currentRoom = room;
-        clientPlayer = player;
+        if (player != null) {
+            if (socketID != player.socketId && $.cookie('mute') == 0) ion.sound.play('smb_1-up');
+            currentRoom = room;
+            clientPlayer = player;
+        }
         $('.joined-players').html(defaultJoinedPlayers);
         $.each(players, function (index, player) {
             $('.player-' + (index + 1)).html(((socketID == player.socketId) ? '<i class="fa fa-user"></i>&nbsp;' : '') + player.name).addClass(player.socketId);
         });
     });
 
+    socket.on('send exit', function (data) {
+        currentPlayers = data;
+    });
     socket.on('play game', function (roomName, players, firstChar) {
         // Clear data at start of game
         clearData();
@@ -124,6 +129,7 @@ var defaultJoinedPlayers = null;
                 $('.game_over .modal-title').html('You lost!');
                 gameOver('Word submitted does not exist! Game Over!');
             } else {
+                if ($.cookie('mute') == 0) ion.sound.play('smb_bowserfalls');
                 // Start new round
                 setTimeout(function () {
                     startRound();
@@ -142,7 +148,7 @@ var defaultJoinedPlayers = null;
                 gameOver('Congrats! Winner!');
                 if ($.cookie('mute') == 0) ion.sound.play('smb_stage_clear');
                 $('#continue-play').on('touchstart, click', function () {
-                    socket.emit('game over', currentRoom);
+                    socket.emit('game over', currentRoom, $.cookie('playerNumber'));
                 });
             }
         } else if (lostPlayer !== null && checkedWord === null && _.size(players) == 0) { // Incorrect result from last player --> loser
@@ -153,7 +159,7 @@ var defaultJoinedPlayers = null;
                 $('.game_over .modal-title').html('Congrats! You almost won!');
                 gameOver('Congrats! Loser!');
                 $('#continue-play').on('touchstart, click', function () {
-                    socket.emit('game over', currentRoom);
+                    socket.emit('game over', currentRoom, $.cookie('playerNumber'));
                 });
             }
         }
