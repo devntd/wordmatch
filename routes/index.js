@@ -10,7 +10,7 @@ module.exports = function (io) {
     // Settings
     var setting = {
         gamePlay: 'random',
-        playerNumber: 4,
+        playerNumber: 2,
         playerName: 'Player',
         mute: 0
     };
@@ -219,8 +219,8 @@ module.exports = function (io) {
                 }
             });
 
-            socket.on('game over', function (roomName) {
-                if (_.size(rooms[roomName].players) == 2) {
+            socket.on('game over', function (roomName, playerNumber) {
+                if (_.size(rooms[roomName].players) == playerNumber) {
                     io.sockets.in(roomName).emit('play game', roomName, rooms[roomName].players, randomChar());
                 } else {
                     rooms[roomName].status = 0;
@@ -282,12 +282,17 @@ module.exports = function (io) {
                 // sth goes here
                 if (!_.isUndefined(socket.room)) {
                     var clientRoom = socket.room;
+                    console.log('First Disconnect');
+                    console.log(rooms[clientRoom]);
                     socket.leave(socket.room);
-                    if (rooms[clientRoom].status == 1) {
+                    if (rooms[clientRoom].status == 1 && !_.isEmpty(rooms[clientRoom].nowPlaying)) {
                         if (socket.id == rooms[clientRoom].nowPlaying[0].socketId) {
                             rooms[clientRoom].nowPlaying.push(rooms[clientRoom].nowPlaying.shift());
                             var loser = rooms[clientRoom].nowPlaying.pop();
-                            io.sockets.in(clientRoom).emit('send result', clientRoom, rooms[clientRoom].nowPlaying, randomChar(), null, loser);
+                            setTimeout(function () {
+                                io.sockets.in(clientRoom).emit('send result', clientRoom, rooms[clientRoom].nowPlaying, randomChar(), null, loser);
+                                return;
+                            }, 1000);
                         } else {
                             rooms[clientRoom].nowPlaying = _.without(rooms[clientRoom].nowPlaying, _.findWhere(rooms[clientRoom].nowPlaying, {socketId: socket.id}));
                             io.sockets.in(clientRoom).emit('send exit', rooms[clientRoom].nowPlaying);
@@ -295,6 +300,7 @@ module.exports = function (io) {
                     }
                     rooms[clientRoom].players = _.without(rooms[clientRoom].players, _.findWhere(rooms[clientRoom].players, {socketId: socket.id}));
                     console.log(rooms[clientRoom]);
+                    io.sockets.in(clientRoom).emit('players changed', clientRoom, null, rooms[clientRoom].players);
                 }
             });
         }

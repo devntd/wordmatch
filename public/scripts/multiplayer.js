@@ -129,6 +129,7 @@ var defaultJoinedPlayers = null;
                 $('.game_over .modal-title').html('You lost!');
                 gameOver('Word submitted does not exist! Game Over!');
             } else {
+                if ($.cookie('mute') == 0) ion.sound.play('smb_bowserfalls');
                 // Start new round
                 setTimeout(function () {
                     startRound();
@@ -147,7 +148,7 @@ var defaultJoinedPlayers = null;
                 gameOver('Congrats! Winner!');
                 if ($.cookie('mute') == 0) ion.sound.play('smb_stage_clear');
                 $('#continue-play').on('touchstart, click', function () {
-                    socket.emit('game over', currentRoom);
+                    socket.emit('game over', currentRoom, $.cookie('playerNumber'));
                 });
             }
         } else if (lostPlayer !== null && checkedWord === null && _.size(players) == 0) { // Incorrect result from last player --> loser
@@ -158,7 +159,7 @@ var defaultJoinedPlayers = null;
                 $('.game_over .modal-title').html('Congrats! You almost won!');
                 gameOver('Congrats! Loser!');
                 $('#continue-play').on('touchstart, click', function () {
-                    socket.emit('game over', currentRoom);
+                    socket.emit('game over', currentRoom, $.cookie('playerNumber'));
                 });
             }
         }

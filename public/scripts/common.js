@@ -39,6 +39,12 @@ var minScore = 0, playerHighScore = 0;
         }
     });
 
+    $('#name-player').keyup(function (e) {
+        if (e.which == 13) {
+            $('#setting-save').trigger('touchstart, click');
+        }
+    });
+
     $('.setting-volume img').attr('src', function () {
         if ($.cookie('mute') == 0) return 'images/volume_on.png';
         return 'images/volume_off.png';
