@@ -13,10 +13,12 @@ var SECONDS_OF_PENDING = 3;
 var countDownTimeout, inRoundFlag = false;
 var passedWords = [], score = 0, timeRemaining;
 var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, clientPlayer;
+var defaultJoinedPlayers = null;
 
 (function ($) {
     // Init socket
     socket = io.connect('http://wordmatch.org:4100');
+    defaultJoinedPlayers = $('.joined-players').html();
 
     // Init slide
     var bxSlider = $('.game_content').bxSlider({
@@ -31,13 +33,15 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     $('.start-game-play').on('touchstart, click', function () {
         // Clear data for new game
         clearData();
+        $('.joined-player:first').html('<i class="fa fa-user"></i>&nbsp;' + $.cookie('playerName'));
+        $('.joined-player:not(:first)').html('...');
         // Store socketID and request to join game
         socketID = socket.io.engine.id;
         // Waiting status
         if (!$(this).hasClass('stop-game-play')) {
             $(this).addClass('stop-game-play').html('Exit');
             if ($.cookie('mute') == 0) ion.sound.play('smb_kick');
-            socket.emit('join game', $.cookie('playerName'),$.cookie('playerNumber'));
+            socket.emit('join game', $.cookie('playerName'), $.cookie('playerNumber'));
         } else {
             // Cancel game
             if ($.cookie('mute') == 0) ion.sound.play('smb_pause');
@@ -49,19 +53,27 @@ var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, 
     $('#exit-room').on('touchstart, click', function () {
         if ($.cookie('mute') == 0) ion.sound.play('smb_pause');
         $('.start-game-play').removeClass('stop-game-play').html('Play');
+        $('.joined-player:first').html('<i class="fa fa-user"></i>&nbsp;' + $.cookie('playerName'));
+        $('.joined-player:not(:first)').html('...');
         clearData();
         socket.emit('exit game', currentRoom, socketID);
     });
 
     socket.on('players changed', function (room, player, players) {
-        if (socketID != player.socketId && $.cookie('mute') == 0) ion.sound.play('smb_1-up');
-        currentRoom = room;
-        clientPlayer = player;
+        if (player != null) {
+            if (socketID != player.socketId && $.cookie('mute') == 0) ion.sound.play('smb_1-up');
+            currentRoom = room;
+            clientPlayer = player;
+        }
+        $('.joined-players').html(defaultJoinedPlayers);
         $.each(players, function (index, player) {
             $('.player-' + (index + 1)).html(((socketID == player.socketId) ? '<i class="fa fa-user"></i>&nbsp;' : '') + player.name).addClass(player.socketId);
         });
     });
 
+    socket.on('send exit', function (data) {
+        currentPlayers = data;
+    });
     socket.on('play game', function (roomName, players, firstChar) {
         // Clear data at start of game
         clearData();

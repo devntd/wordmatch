@@ -175,6 +175,7 @@ module.exports = function (io) {
     io.on("connection", function (socket) {
             // Player request to join, start game when enough players
             socket.on('join game', function (name, playerNumber) {
+                console.log(playerNumber);
                 var player = {'socketId': socket.id, 'name': name, 'status': 1};
                 if (_.isEmpty(rooms)) {
                     var id = uuid.v4();
@@ -236,14 +237,15 @@ module.exports = function (io) {
                         if (_.size(players) === 1) {
                             loser = players.pop();
                             rooms[roomName].nowPlaying = players;
-                            io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), queriedWord.toObject().word, loser);
+                            io.sockets.in(roomName).emit('send result', roomName, rooms[roomName].nowPlaying, randomChar(), queriedWord.toObject().word, loser);
                         } else {
-                            io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), queriedWord.toObject().word, null);
+                            rooms[roomName].nowPlaying = players;
+                            io.sockets.in(roomName).emit('send result', roomName, rooms[roomName].nowPlaying, randomChar(), queriedWord.toObject().word, null);
                         }
                     } else {
                         loser = players.pop();
                         rooms[roomName].nowPlaying = players;
-                        io.sockets.in(roomName).emit('send result', roomName, players, randomChar(), null, loser);
+                        io.sockets.in(roomName).emit('send result', roomName, rooms[roomName].nowPlaying, randomChar(), null, loser);
                     }
                 });
             });
@@ -268,7 +270,10 @@ module.exports = function (io) {
                     rooms[roomName].players = _.without(rooms[roomName].players, _.findWhere(rooms[roomName].players, {socketId: socketIdClient}));
                     //console.log('Room after exit');
                     //console.log(rooms[roomName].players);
-
+                    console.log('da den day');
+                    console.log(rooms[roomName]);
+                    console.log(rooms[roomName].players);
+                    io.sockets.in(roomName).emit('players changed', roomName, null, rooms[roomName].players);
                 }
             });
 
@@ -276,15 +281,20 @@ module.exports = function (io) {
             socket.on('disconnect', function () {
                 // sth goes here
                 if (!_.isUndefined(socket.room)) {
-                    if (rooms[socket.room].status == 1) {
-                        rooms[socket.room].nowPlaying.push(rooms[socket.room].nowPlaying.shift());
-                        var loser = rooms[socket.room].nowPlaying.pop();
-                        io.sockets.in(socket.room).emit('send result', socket.room, rooms[socket.room].nowPlaying, randomChar(), null, loser);
-                    }
-                    rooms[socket.room].players = _.without(rooms[socket.room].players, _.findWhere(rooms[socket.room].players, {socketId: socket.id}));
-                    console.log(rooms[socket.room]);
+                    var clientRoom = socket.room;
                     socket.leave(socket.room);
-
+                    if (rooms[clientRoom].status == 1) {
+                        if (socket.id == rooms[clientRoom].nowPlaying[0].socketId) {
+                            rooms[clientRoom].nowPlaying.push(rooms[clientRoom].nowPlaying.shift());
+                            var loser = rooms[clientRoom].nowPlaying.pop();
+                            io.sockets.in(clientRoom).emit('send result', clientRoom, rooms[clientRoom].nowPlaying, randomChar(), null, loser);
+                        } else {
+                            rooms[clientRoom].nowPlaying = _.without(rooms[clientRoom].nowPlaying, _.findWhere(rooms[clientRoom].nowPlaying, {socketId: socket.id}));
+                            io.sockets.in(clientRoom).emit('send exit', rooms[clientRoom].nowPlaying);
+                        }
+                    }
+                    rooms[clientRoom].players = _.without(rooms[clientRoom].players, _.findWhere(rooms[clientRoom].players, {socketId: socket.id}));
+                    console.log(rooms[clientRoom]);
                 }
             });
         }
