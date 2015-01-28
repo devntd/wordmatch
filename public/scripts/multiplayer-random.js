@@ -187,17 +187,17 @@ var defaultJoinedPlayers = null;
         if (typeof text !== 'string' || text === '' || inRoundFlag !== true || text.length < 2) {
             // Inform wrong word
             socket.emit('wrong word', currentRoom, currentPlayers);
-            gameOver('Wrong input!');
+            console.log('Wrong input!');
             return false;
         } else if (text.charCodeAt(0) !== currentChar) { // Words errors
             // Inform wrong word
             socket.emit('wrong word', currentRoom, currentPlayers);
-            gameOver('First letter does not match! Games Over!');
+            console.log('First letter does not match! Games Over!');
             return false;
         } else if (passedWords.indexOf(text) !== -1) {
             // Inform wrong word
             socket.emit('wrong word', currentRoom, currentPlayers);
-            gameOver('Last word has already been submitted!');
+            console.log('Last word has already been submitted!');
             return false;
         }
 
