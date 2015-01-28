@@ -59,6 +59,7 @@ var defaultJoinedPlayers = null;
         socket.emit('exit game', currentRoom, socketID);
     });
 
+
     socket.on('players changed', function (room, player, players) {
         if (player != null) {
             if (socketID != player.socketId && $.cookie('mute') == 0) ion.sound.play('smb_1-up');
