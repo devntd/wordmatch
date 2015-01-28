@@ -29,12 +29,12 @@ var minScore = 0, playerHighScore = 0;
             playerName: $('#name-player').val()
         };
 
-        if ((settings.gamePlay === 'multiplayer' && typeof settings.playerName === 'string' && settings.playerName.length >= 3) || settings.gamePlay !== 'multiplayer') {
+        if ((settings.gamePlay === 'multiplayer-random' && typeof settings.playerName === 'string' && settings.playerName.length >= 3) || settings.gamePlay !== 'multiplayer-random') {
             $('#name-player-tooltip').tooltipster('hide');
             $.post('/setting', settings, function () {
                 $(location).attr('href', 'http://wordmatch.org');
             });
-        } else if (settings.gamePlay === 'multiplayer' && (typeof settings.playerName !== 'string' || settings.playerName < 3)) {
+        } else if (settings.gamePlay === 'multiplayer-random' && (typeof settings.playerName !== 'string' || settings.playerName < 3)) {
             $('#name-player-tooltip').tooltipster('content', 'Please enter your name with at least 3 letters').tooltipster('show');
         }
     });
