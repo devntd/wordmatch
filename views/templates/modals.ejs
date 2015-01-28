@@ -23,7 +23,7 @@
                 <h4>Multiple Player</h4>
                 <div class="radio">
                     <label>
-                        <input type="radio" name="optionsRadios" id="optionsRadios3" value="multiplayer-random" <% if (gamePlay == 'multiplayer-random') { %>checked<% } %>>Multiplayer - Random
+                        <input type="radio" name="optionsRadios" id="optionsRadios3" value="multiplayer" <% if (gamePlay == 'multiplayer-random') { %>checked<% } %>>Multiplayer - Random
                     </label>
                     <div class="setting-multiplayer">
                         <input id="name-player" type="text" class="form-control" placeholder="<%= playerName %>">
@@ -93,7 +93,7 @@
                     <!--<div class="share-button google" data-href=""><i class="fa fa-google-plus"></i>&nbsp;&nbsp;Share on Google Plus</div>
                     <div class="share-button twitter" data-href=""><i class="fa fa-twitter"></i>&nbsp;&nbsp;Share on Twitter</div>-->
                 </div>
-                <% if (gamePlay == 'multiplayer-random') { %>
+                <% if (gamePlay == 'multiplayer') { %>
                 <div class="multiplayer-button">
                     <div class="button-holder col-lg-12 col-md-12 col-sm-12 col-xs-12">
                         <button type="button" data-dismiss="modal"  id="continue-play" class="btn btn-info">Continue to play</button>
@@ -118,7 +118,7 @@
             </div>
 
             <div class="modal-footer">
-                <a type="button" target="_blank" class="btn btn-default" href="https://www.facebook.com/messages/610243329075888">Feedback</a>
+                <a type="button" class="btn btn-default" href="https://www.facebook.com/messages/610243329075888">Feedback</a>
             </div>
         </div>
         <!-- /.modal-content -->
