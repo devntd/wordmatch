@@ -17,7 +17,7 @@ var defaultJoinedPlayers = null;
 
 (function ($) {
     // Init socket
-    socket = io.connect('http://wordmatch.org:4100');
+    socket = io.connect('http://wordmatch.org');
     defaultJoinedPlayers = $('.joined-players').html();
 
     // Init slide

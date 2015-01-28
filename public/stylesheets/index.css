@@ -295,6 +295,10 @@ header .navbar-default ul li:hover {
     display: none;
 }
 
+.footer a {
+    color: #ffffff;
+}
+
 .image_game_group {
     height: 135px;
     width: 135px;

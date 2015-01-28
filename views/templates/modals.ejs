@@ -23,7 +23,7 @@
                 <h4>Multiple Player</h4>
                 <div class="radio">
                     <label>
-                        <input type="radio" name="optionsRadios" id="optionsRadios3" value="multiplayer" <% if (gamePlay == 'multiplayer') { %>checked<% } %>>Multiplayer
+                        <input type="radio" name="optionsRadios" id="optionsRadios3" value="multiplayer" <% if (gamePlay == 'multiplayer-random') { %>checked<% } %>>Multiplayer - Random
                     </label>
                     <div class="setting-multiplayer">
                         <input id="name-player" type="text" class="form-control" placeholder="<%= playerName %>">
@@ -82,6 +82,7 @@
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title">GAME OVER!</h4>
             </div>
+
             <div class="modal-body">
                 <div class="final-score">
                     <span>YOUR SCORE</span>
@@ -114,6 +115,10 @@
                         <!-- Score Board -->
                     </table>
                 </div>
+            </div>
+
+            <div class="modal-footer">
+                <a type="button" class="btn btn-default" href="https://www.facebook.com/messages/610243329075888">Feedback</a>
             </div>
         </div>
         <!-- /.modal-content -->

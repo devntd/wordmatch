@@ -32,7 +32,7 @@ var minScore = 0, playerHighScore = 0;
         if ((settings.gamePlay === 'multiplayer' && typeof settings.playerName === 'string' && settings.playerName.length >= 3) || settings.gamePlay !== 'multiplayer') {
             $('#name-player-tooltip').tooltipster('hide');
             $.post('/setting', settings, function () {
-                $(location).attr('href', 'http://wordmatch.org:4100');
+                $(location).attr('href', 'http://wordmatch.org');
             });
         } else if (settings.gamePlay === 'multiplayer' && (typeof settings.playerName !== 'string' || settings.playerName < 3)) {
             $('#name-player-tooltip').tooltipster('content', 'Please enter your name with at least 3 letters').tooltipster('show');
