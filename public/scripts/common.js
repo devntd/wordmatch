@@ -40,6 +40,7 @@ var minScore = 0, playerHighScore = 0;
     });
 
     $('#name-player').keyup(function (e) {
+        $('#name-player-tooltip').tooltipster('hide');
         if (e.which == 13) {
             $('#setting-save').trigger('touchstart, click');
         }
@@ -58,27 +59,10 @@ var minScore = 0, playerHighScore = 0;
         }
     });
 
-    $('#name-player').keyup(function () {
-        $('#name-player-tooltip').tooltipster('hide');
-    });
-
     // Social share
     $('.facebook').on('touchstart, click', function () {
         var link = $(this).attr('data-href') + btoa($.cookie('gamePlay') + '-' + score);
         social.popupWindow(link, "Share with Friends", 700, 500);
-    });
-
-    // Save name and score
-    $('#player-name-input').keyup(function (e) {
-        var name = $('#player-name-input').val().trim();
-        if (e.which === 13 && name !== '' && score > minScore) {
-            updateScoreBoard({name: name, score: score});
-            $.cookie("playerName", name);
-        } else if (e.which === 13 && (name === '' || score <= minScore)) {
-            $('#input-name-tooltip').tooltipster('content', 'Reach score higher than ' + minScore + ' then enter your name to submit').tooltipster('show');
-        } else {
-            $('#input-name-tooltip').tooltipster('hide');
-        }
     });
 
     // Modal events
@@ -94,6 +78,18 @@ var minScore = 0, playerHighScore = 0;
         $('#name-player-tooltip').tooltipster('hide');
     });
 
+    // Save name and score
+    $('#player-name-input').keyup(function (e) {
+        var name = $('#player-name-input').val().trim();
+        if (e.which === 13 && name !== '' && score > minScore) {
+            updateScoreBoard({name: name, score: score, passedWords: passedWords});
+            $.cookie("playerName", name);
+        } else if (e.which === 13 && (name === '' || score <= minScore || _.empty(passedWords) || "[^~`!#$%\^&*+=\-\[\]\\';,/{}|\\\":<>\?]".test(name))) {
+            $('#input-name-tooltip').tooltipster('content', 'Reach score higher than ' + minScore + ' then enter your name to submit').tooltipster('show');
+        } else {
+            $('#input-name-tooltip').tooltipster('hide');
+        }
+    });
     // Update score board
     function updateScoreBoard(req) {
         $.post('/add-score', req, function (data) {

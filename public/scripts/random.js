@@ -146,8 +146,7 @@ var passedWords = [], score = 0, timeRemaining;
                 if (currentSlide === 0) return 'result-true';
             });
         }, 1000);
-
-        $('#word_text').focus().val('');
+        $('#word_text').focus().val('').attr('placeholder', 'Enter word begins with ' + String.fromCharCode(char.current));
         inRoundFlag = true;
         startCountDown(SECONDS_PER_ROUND);
     }
@@ -165,6 +164,7 @@ var passedWords = [], score = 0, timeRemaining;
     function gameOver(error) {
         if ($.cookie('mute') == 0) ion.sound.play('wrong_answer');
         $('.game_load').css('z-index', '888');
+        $('#word_text').attr('placeholder', 'Click Play to start');
         setTimeout(function () {
             $('.game_over').modal('show').find('.your-score').html(score);
         }, 500);

@@ -59,6 +59,9 @@ var defaultJoinedPlayers = null;
         socket.emit('exit game', currentRoom, socketID);
     });
 
+    $('#continue-play').on('touchstart, click',function(){
+        clearTimeout(countDownTimeout);
+    });
 
     socket.on('players changed', function (room, player, players) {
         if (player != null) {
@@ -87,6 +90,7 @@ var defaultJoinedPlayers = null;
         // Start game
         startRoundCountDown(SECONDS_OF_PENDING);
     });
+
 
     socket.on('send result', function (roomName, players, randomChar, checkedWord, lostPlayer) {
         // Clear timeout all players
@@ -230,7 +234,7 @@ var defaultJoinedPlayers = null;
         $('.joined-player').removeClass('active');
         $('.joined-player.' + currentPlayer.socketId).addClass('active');
         // Focus on the input
-        $('#word_text').focus().val('');
+        $('#word_text').focus().val('').attr('placeholder', 'Enter word begins with ' + String.fromCharCode(currentChar));
         inRoundFlag = true;
         startCountDown(SECONDS_PER_ROUND);
     }
@@ -292,6 +296,7 @@ var defaultJoinedPlayers = null;
     function gameOver(error) {
         // Client's UI
         $('.game_load').css('z-index', '888');
+        $('#word_text').attr('placeholder', 'Click Play to start');
         setTimeout(function () {
             $('.game_over').modal('show').find('.your-score').html(score);
         }, 500);
