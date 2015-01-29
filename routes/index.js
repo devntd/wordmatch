@@ -9,7 +9,7 @@ module.exports = function (io) {
 
     // Settings
     var setting = {
-        gamePlay: 'random',
+        gamePlay: 'normal',
         playerNumber: 2,
         playerName: 'Player',
         mute: 0
@@ -119,11 +119,15 @@ module.exports = function (io) {
 
     // Score board
     router.post('/add-score', function (req, res) {
-        if (typeof req.body.name === 'string' && req.body.name !== '' && req.body.score !== '0') {
+        var passedWords = [];
+        if (_.isUndefined(req.body['passedWords[]'])) passedWords = req.body['passedWords[]'];
+        if (typeof req.body.name === 'string' && !req.body.name.match(/[!"#$%&'()*+,/:;<=>?@\[\]^`{|}~\\]/g) && req.body.name !== '' && req.body.score > 0 && req.body.score <= passedWords.length * 9 && !_.isEmpty(passedWords)) {
             var rankPlayer = new Ranks({
                 gamePlay: req.session.gamePlay,
                 name: req.body.name,
-                score: req.body.score
+                score: req.body.score,
+                passedWords: passedWords,
+                ownPassedWords: req.body['ownPassedWords[]']
             });
 
             rankPlayer.save(function (err) {
@@ -174,20 +178,10 @@ module.exports = function (io) {
 
     // Open connection socket
     io.on("connection", function (socket) {
-        // Player request to join, start game when enough players
-        socket.on('join game', function (name, playerNumber) {
-            console.log('aaaaaaaaaaabbbbbbbbbbbbb');
-            var player = {'socketId': socket.id, 'name': name, 'status': 1};
-            if (_.isEmpty(rooms)) {
-                var id = uuid.v4();
-                socket.room = id;
-                socket.join(socket.room);
-                var room = [];
-                room.push(player);
-                rooms[id] = {'players': room, 'status': 0, 'nowPlaying': [], 'playerNumber': playerNumber};
-                io.sockets.in(socket.room).emit('players changed', id, player, rooms[id]);
-            } else {
-                if (_.isEmpty(returnRoom(rooms, playerNumber))) {
+            // Player request to join, start game when enough players
+            socket.on('join game', function (name, playerNumber) {
+                var player = {'socketId': socket.id, 'name': name, 'status': 1};
+                if (_.isEmpty(rooms)) {
                     var id = uuid.v4();
                     socket.room = id;
                     socket.join(socket.room);
@@ -196,98 +190,108 @@ module.exports = function (io) {
                     rooms[id] = {'players': room, 'status': 0, 'nowPlaying': [], 'playerNumber': playerNumber};
                     io.sockets.in(socket.room).emit('players changed', id, player, rooms[id]);
                 } else {
-                    var listRoom = returnRoom(rooms, playerNumber);
-                    var players = listRoom[1];
-                    socket.room = listRoom[0];
-                    socket.join(socket.room);
-                    players.push(player);
-                    // Players number changed
-                    io.sockets.in(socket.room).emit('players changed', socket.room, player, players);
-                    // Enough players, let's play
-                    if (_.size(players) == playerNumber) {
-                        rooms[socket.room].status = 1;
-                        rooms[socket.room].nowPlaying = players;
-                        io.sockets.in(socket.room).emit('play game', socket.room, players, randomChar());
-                    }
-                }
-            }
-        });
-
-        socket.on('game over', function (roomName, playerNumber) {
-            if (_.size(rooms[roomName].players) == playerNumber) {
-                io.sockets.in(roomName).emit('play game', roomName, rooms[roomName].players, randomChar());
-            } else {
-                rooms[roomName].status = 0;
-            }
-        });
-
-        // Players send their words
-        socket.on('send word', function (roomName, players, sentWord) {
-            Words.findOne({'word': new RegExp('^' + sentWord + '$', "i")}, function (err, queriedWord) {
-                var loser = null;
-                if (err) {
-                    return handleError(err);
-                } else if (queriedWord) {
-                    if (_.size(players) === 1) {
-                        loser = players.pop();
-                        rooms[roomName].nowPlaying = players;
-                        io.sockets.in(roomName).emit('send result', roomName, rooms[roomName].nowPlaying, randomChar(), queriedWord.toObject().word, loser);
+                    if (_.isEmpty(returnRoom(rooms, playerNumber))) {
+                        var id = uuid.v4();
+                        socket.room = id;
+                        socket.join(socket.room);
+                        var room = [];
+                        room.push(player);
+                        rooms[id] = {'players': room, 'status': 0, 'nowPlaying': [], 'playerNumber': playerNumber};
+                        io.sockets.in(socket.room).emit('players changed', id, player, rooms[id]);
                     } else {
-                        rooms[roomName].nowPlaying = players;
-                        io.sockets.in(roomName).emit('send result', roomName, rooms[roomName].nowPlaying, randomChar(), queriedWord.toObject().word, null);
+                        var listRoom = returnRoom(rooms, playerNumber);
+                        var players = listRoom[1];
+                        socket.room = listRoom[0];
+                        socket.join(socket.room);
+                        players.push(player);
+                        // Players number changed
+                        io.sockets.in(socket.room).emit('players changed', socket.room, player, players);
+                        // Enough players, let's play
+                        if (_.size(players) == playerNumber) {
+                            rooms[socket.room].status = 1;
+                            rooms[socket.room].nowPlaying = players;
+                            io.sockets.in(socket.room).emit('play game', socket.room, players, randomChar());
+                        }
                     }
-                } else {
-                    loser = players.pop();
-                    rooms[roomName].nowPlaying = players;
-                    io.sockets.in(roomName).emit('send result', roomName, rooms[roomName].nowPlaying, randomChar(), null, loser);
                 }
             });
-        });
 
-        socket.on('wrong word', function (roomName, players) {
-            var lostPlayer = players.pop();
-            rooms[roomName].nowPlaying = players;
-            io.sockets.in(roomName).emit('send result', roomName, rooms[roomName].nowPlaying, randomChar(), null, lostPlayer);
-        });
-
-        socket.on('typing', function (roomName, text) {
-            io.sockets.in(roomName).emit('send typing', text);
-        });
-
-        // exit game
-        socket.on('exit game', function (roomName, socketIdClient) {
-            if (!_.isEmpty(rooms[roomName].players)) {
-                socket.leave(roomName);
-                rooms[roomName].players = _.without(rooms[roomName].players, _.findWhere(rooms[roomName].players, {socketId: socketIdClient}));
-                io.sockets.in(roomName).emit('players changed', roomName, null, rooms[roomName].players);
-            }
-        });
-
-        // Disconnect
-        socket.on('disconnect', function () {
-
-            if (!_.isUndefined(socket.room)) {
-                var clientRoom = socket.room;
-                socket.leave(socket.room);
-                if (rooms[clientRoom].status == 1 && !_.isEmpty(rooms[clientRoom].nowPlaying)) {
-                    if (socket.id == rooms[clientRoom].nowPlaying[0].socketId) {
-                        rooms[clientRoom].nowPlaying.push(rooms[clientRoom].nowPlaying.shift());
-                        var loser = rooms[clientRoom].nowPlaying.pop();
-                        setTimeout(function () {
-                            io.sockets.in(clientRoom).emit('send result', clientRoom, rooms[clientRoom].nowPlaying, randomChar(), null, loser);
-                            return;
-                        }, 3000);
-                    } else {
-                        rooms[clientRoom].nowPlaying = _.without(rooms[clientRoom].nowPlaying, _.findWhere(rooms[clientRoom].nowPlaying, {socketId: socket.id}));
-                        io.sockets.in(clientRoom).emit('send exit', rooms[clientRoom].nowPlaying);
-                    }
+            socket.on('game over', function (roomName, playerNumber) {
+                if (_.size(rooms[roomName].players) == playerNumber) {
+                    io.sockets.in(roomName).emit('play game', roomName, rooms[roomName].players, randomChar());
+                } else {
+                    rooms[roomName].status = 0;
                 }
-                rooms[clientRoom].players = _.without(rooms[clientRoom].players, _.findWhere(rooms[clientRoom].players, {socketId: socket.id}));
-                console.log(rooms[clientRoom]);
-                io.sockets.in(clientRoom).emit('players changed', clientRoom, null, rooms[clientRoom].players);
-            }
-        });
-    });
+            });
+
+            // Players send their words
+            socket.on('send word', function (roomName, players, sentWord) {
+                Words.findOne({'word': new RegExp('^' + sentWord + '$', "i")}, function (err, queriedWord) {
+                    var loser = null;
+                    if (err) {
+                        return handleError(err);
+                    } else if (queriedWord) {
+                        if (_.size(players) === 1) {
+                            loser = players.pop();
+                            rooms[roomName].nowPlaying = players;
+                            io.sockets.in(roomName).emit('send result', roomName, rooms[roomName].nowPlaying, randomChar(), queriedWord.toObject().word, loser);
+                        } else {
+                            rooms[roomName].nowPlaying = players;
+                            io.sockets.in(roomName).emit('send result', roomName, rooms[roomName].nowPlaying, randomChar(), queriedWord.toObject().word, null);
+                        }
+                    } else {
+                        loser = players.pop();
+                        rooms[roomName].nowPlaying = players;
+                        io.sockets.in(roomName).emit('send result', roomName, rooms[roomName].nowPlaying, randomChar(), null, loser);
+                    }
+                });
+            });
+
+            socket.on('wrong word', function (roomName, players) {
+                var lostPlayer = players.pop();
+                rooms[roomName].nowPlaying = players;
+                io.sockets.in(roomName).emit('send result', roomName, rooms[roomName].nowPlaying, randomChar(), null, lostPlayer);
+            });
+
+            socket.on('typing', function (roomName, text) {
+                io.sockets.in(roomName).emit('send typing', text);
+            });
+
+            // exit game
+            socket.on('exit game', function (roomName, socketIdClient) {
+                if (!_.isEmpty(rooms[roomName].players)) {
+                    socket.leave(roomName);
+                    rooms[roomName].players = _.without(rooms[roomName].players, _.findWhere(rooms[roomName].players, {socketId: socketIdClient}));
+                    io.sockets.in(roomName).emit('players changed', roomName, null, rooms[roomName].players);
+                }
+            });
+
+            // Disconnect
+            socket.on('disconnect', function () {
+
+                if (!_.isUndefined(socket.room)) {
+                    var clientRoom = socket.room;
+                    socket.leave(socket.room);
+                    if (rooms[clientRoom].status == 1 && !_.isEmpty(rooms[clientRoom].nowPlaying)) {
+                        if (socket.id == rooms[clientRoom].nowPlaying[0].socketId) {
+                            rooms[clientRoom].nowPlaying.push(rooms[clientRoom].nowPlaying.shift());
+                            var loser = rooms[clientRoom].nowPlaying.pop();
+                            setTimeout(function () {
+                                io.sockets.in(clientRoom).emit('send result', clientRoom, rooms[clientRoom].nowPlaying, randomChar(), null, loser);
+                                return;
+                            }, 3000);
+                        } else {
+                            rooms[clientRoom].nowPlaying = _.without(rooms[clientRoom].nowPlaying, _.findWhere(rooms[clientRoom].nowPlaying, {socketId: socket.id}));
+                            io.sockets.in(clientRoom).emit('send exit', rooms[clientRoom].nowPlaying);
+                        }
+                    }
+                    rooms[clientRoom].players = _.without(rooms[clientRoom].players, _.findWhere(rooms[clientRoom].players, {socketId: socket.id}));
+                    console.log(rooms[clientRoom]);
+                    io.sockets.in(clientRoom).emit('players changed', clientRoom, null, rooms[clientRoom].players);
+                }
+            });
+        }
+    );
 
     return router;
 };

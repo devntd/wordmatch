@@ -11,7 +11,7 @@ var SECONDS_PER_ROUND = 10;
 var SECONDS_OF_PENDING = 3;
 
 var countDownTimeout, inRoundFlag = false;
-var passedWords = [], score = 0, timeRemaining;
+var passedWords = [], ownPassedWords = [], score = 0, timeRemaining;
 var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, clientPlayer;
 var defaultJoinedPlayers = null;
 
@@ -59,7 +59,7 @@ var defaultJoinedPlayers = null;
         socket.emit('exit game', currentRoom, socketID);
     });
 
-    $('#continue-play').on('touchstart, click',function(){
+    $('#continue-play').on('touchstart, click', function () {
         clearTimeout(countDownTimeout);
     });
 

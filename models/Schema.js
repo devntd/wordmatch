@@ -5,7 +5,9 @@ var WordSchema = new mongoose.Schema();
 var RankSchema = new mongoose.Schema({
     name: String,
     score: Number,
-    gamePlay: String
+    gamePlay: String,
+    passedWords: [],
+    ownPassedWords: []
 });
 
 exports.Words = mongoose.model('Words', WordSchema);

@@ -81,15 +81,19 @@ var minScore = 0, playerHighScore = 0;
     // Save name and score
     $('#player-name-input').keyup(function (e) {
         var name = $('#player-name-input').val().trim();
-        if (e.which === 13 && name !== '' && score > minScore) {
-            updateScoreBoard({name: name, score: score, passedWords: passedWords});
+        if (e.which === 13 && name !== '' /*&& score > minScore*/ && !_.isEmpty(passedWords) && !name.match(/[!"#$%&'()*+,/:;<=>?@\[\]^`{|}~\\]/g)) {
+            console.log(passedWords);
+            updateScoreBoard({name: $('<div/>').text(name).html(), score: score, passedWords: passedWords, ownPassedWords: ownPassedWords || null});
             $.cookie("playerName", name);
-        } else if (e.which === 13 && (name === '' || score <= minScore || _.empty(passedWords) || "[^~`!#$%\^&*+=\-\[\]\\';,/{}|\\\":<>\?]".test(name))) {
+        } else if (e.which === 13 && (name === '' || name.length > 1 || name.match(/[!"#$%&'()*+,/:;<=>?@\[\]^`{|}~\\]/g))) {
+            $('#input-name-tooltip').tooltipster('content', 'Your name must be as least 2 characters and contains no special character: !"#$%&\'()*+,/:;<=>?@\[\]^`{|}~\\').tooltipster('show');
+        } else if (e.which === 13 && (score <= minScore || _.isEmpty(passedWords))) {
             $('#input-name-tooltip').tooltipster('content', 'Reach score higher than ' + minScore + ' then enter your name to submit').tooltipster('show');
         } else {
             $('#input-name-tooltip').tooltipster('hide');
         }
     });
+
     // Update score board
     function updateScoreBoard(req) {
         $.post('/add-score', req, function (data) {
