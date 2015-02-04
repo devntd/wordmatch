@@ -5,7 +5,7 @@ CHAR_CODE_Z = 'z'.charCodeAt(0);
 var SECONDS_PER_ROUND = 10;
 var char = {current: 0, next: 0};
 var countDownTimeout, inRoundFlag = false;
-var passedWords = [], score = 0, timeRemaining;
+var passedWords = [], score = 0, timeRemaining, ownPassedWords = [];
 
 (function ($) {
     // Init slide
@@ -26,6 +26,7 @@ var passedWords = [], score = 0, timeRemaining;
             char.current = randomChar();
             char.next = randomChar();
             passedWords.doClear();
+            ownPassedWords.doClear();
             // First time start
             bxSlider.reloadSlider();
             $('.slide').removeClass('result-true result-false');
@@ -49,7 +50,7 @@ var passedWords = [], score = 0, timeRemaining;
             $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
             gameOver('First letter does not match! Games Over!');
             return false;
-        } else if (passedWords.indexOf(text) !== -1) {
+        } else if (ownPassedWords.indexOf(text) !== -1) {
             $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
             gameOver('Last word has already been submitted!');
             return false;
@@ -64,7 +65,7 @@ var passedWords = [], score = 0, timeRemaining;
                     // Calculate char
                     char.current = char.next;
                     char.next = randomChar();
-                    passedWords.push(text);
+                    ownPassedWords.push(text);
                     if ($.cookie('mute') == 0) ion.sound.play('right_answer');
 
                     // Set preview

@@ -12,12 +12,12 @@ var SECONDS_OF_PENDING = 3;
 
 var countDownTimeout, inRoundFlag = false;
 var passedWords = [], ownPassedWords = [], score = 0, timeRemaining;
-var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, clientPlayer;
+var socketID, currentPlayer, currentPlayers = [], currentChar = 0, currentRoom, currentSlide;
 var defaultJoinedPlayers = null;
 
 (function ($) {
     // Init socket
-    socket = io.connect('http://wordmatch.org');
+    socket = io.connect('http://wordmatch.org:4100');
     defaultJoinedPlayers = $('.joined-players').html();
 
     // Init slide
@@ -56,19 +56,22 @@ var defaultJoinedPlayers = null;
         $('.joined-player:first').html('<i class="fa fa-user"></i>&nbsp;' + $.cookie('playerName'));
         $('.joined-player:not(:first)').html('...');
         clearData();
+        $('#word_text').focus().val('').attr('placeholder', 'Click Play to start');
         socket.emit('exit game', currentRoom, socketID);
     });
 
     $('#continue-play').on('touchstart, click', function () {
-        clearTimeout(countDownTimeout);
+        clearData();
+        $('#word_text').prop('disabled', false);
+        $('#word_text').focus().val('').attr('placeholder', 'Click Exit to exit game');
+        socket.emit('continue play', currentRoom, $.cookie('playerName'));
     });
 
     socket.on('players changed', function (room, player, players) {
-        if (player != null) {
+        if (player != null)
             if (socketID != player.socketId && $.cookie('mute') == 0) ion.sound.play('smb_1-up');
-            currentRoom = room;
-            clientPlayer = player;
-        }
+        currentRoom = room;
+        currentPlayers = players;
         $('.joined-players').html(defaultJoinedPlayers);
         $.each(players, function (index, player) {
             $('.player-' + (index + 1)).html(((socketID == player.socketId) ? '<i class="fa fa-user"></i>&nbsp;' : '') + player.name).addClass(player.socketId);
@@ -91,12 +94,15 @@ var defaultJoinedPlayers = null;
         startRoundCountDown(SECONDS_OF_PENDING);
     });
 
+    socket.on('error:exists room',function(){
+        alert('hehe :xxxxx');
+    });
 
     socket.on('send result', function (roomName, players, randomChar, checkedWord, lostPlayer) {
         // Clear timeout all players
         clearTimeout(countDownTimeout);
         // Current slide
-        var currentSlide = bxSlider.getCurrentSlide();
+        currentSlide = bxSlider.getCurrentSlide();
         // Check result
         if (lostPlayer === null && checkedWord !== null && _.size(players) > 0) { // Correct result --> next player
             // New round data
@@ -166,6 +172,90 @@ var defaultJoinedPlayers = null;
         }
     });
 
+    socket.on('send result win', function (roomName, players, randomChar, checkedWord, lostPlayer) {
+        clearTimeout(countDownTimeout);
+        currentSlide = bxSlider.getCurrentSlide();
+        $('.joined-player.' + lostPlayer.socketId).addClass('won');
+        $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-true');
+        if ($.cookie('mute') == 0) ion.sound.play('smb_coin');
+        if (socketID == lostPlayer.socketId) {
+            $('.game_over .modal-title').html('Congrats! You won!');
+            ownPassedWords.push(checkedWord);
+            // Set score
+            score += timeRemaining;
+            $('.point').html(score);
+            // End game
+            gameOver('Congrats! Winner!');
+            if ($.cookie('mute') == 0) ion.sound.play('smb_stage_clear');
+
+        } else {
+            $('.game_over .modal-title').html('You lost!');
+            gameOver('Word submitted does not exist! Game Over!');
+        }
+    });
+
+    socket.on('send result almost won', function (roomName, players, randomChar, checkedWord, lostPlayer) {
+        clearTimeout(countDownTimeout);
+        currentSlide = bxSlider.getCurrentSlide();
+        $('.joined-player.' + lostPlayer.socketId).addClass('almost-won');
+        $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
+        if ($.cookie('mute') == 0) ion.sound.play('smb_mariodie');
+        if (socketID == lostPlayer.socketId) {
+            $('.game_over .modal-title').html('Congrats! You almost won!');
+            gameOver('Congrats! Loser!');
+        } else {
+            $('.game_over .modal-title').html('You lost!');
+            gameOver('Word submitted does not exist! Game Over!');
+        }
+    });
+
+    socket.on('send result correct', function (roomName, players, randomChar, checkedWord) {
+        clearTimeout(countDownTimeout);
+        currentSlide = bxSlider.getCurrentSlide();
+        // New round data
+        currentChar = randomChar;
+        currentPlayers = players;
+        currentPlayer = currentPlayers[0];
+        // Push passed word into stack
+        passedWords.push(checkedWord);
+        // Set score to the last player (after swap)
+        if (socketID == players[players.length - 1].socketId) {
+            ownPassedWords.push(checkedWord);
+            score += timeRemaining;
+            $('.point').html(score);
+        }
+        // Set preview
+        $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-true');
+        if ($.cookie('mute') == 0) ion.sound.play('smb_coin');
+        // Start new round
+        setTimeout(function () {
+            startRound();
+        }, 1000);
+    });
+
+    socket.on('send result incorrect', function (roomName, players, randomChar, checkedWord, lostPlayer) {
+        clearTimeout(countDownTimeout);
+        currentSlide = bxSlider.getCurrentSlide();
+        // New round data
+        currentChar = randomChar;
+        currentPlayers = players;
+        currentPlayer = currentPlayers[0];
+        // Highlight loser
+        $('.joined-player.' + lostPlayer.socketId).addClass('lost');
+        $('.slide:nth-child(' + (currentSlide + 2) + ')').addClass('result-false');
+        if (socketID == lostPlayer.socketId) {
+            if ($.cookie('mute') == 0) ion.sound.play('smb_mariodie');
+            //$('.game_over .modal-title').html('You lost!');
+            //gameOver('Word submitted does not exist! Game Over!');
+        } else {
+            if ($.cookie('mute') == 0) ion.sound.play('smb_bowserfalls');
+        }
+        // Start new round
+        setTimeout(function () {
+            startRound();
+        }, 1000);
+    });
+
     // Send word to server
     $('#word_text').keyup(function (e) {
         var currentInput = getInput();
@@ -219,20 +309,25 @@ var defaultJoinedPlayers = null;
         $('.slide').removeClass('result-false result-true').html('-');
         // Clear and Init data
         passedWords.doClear();
+        ownPassedWords.doClear();
         // Reload slider
         bxSlider.reloadSlider();
     }
 
+
     // x3
     function startRound() {
         // Each time start
-        var currentSlide = bxSlider.getCurrentSlide();
+        currentSlide = bxSlider.getCurrentSlide();
         $('.slide:nth-child(' + (currentSlide + 2) + ')').removeClass(function () {
             if (currentSlide === 0) return 'result-true result-false';
         }).html(String.fromCharCode(currentChar));
         // Change current user highlight
         $('.joined-player').removeClass('active');
         $('.joined-player.' + currentPlayer.socketId).addClass('active');
+        if (socketID != currentPlayer.socketId)
+            $('#word_text').prop('disabled', true);
+        else  $('#word_text').prop('disabled', false);
         // Focus on the input
         $('#word_text').focus().val('').attr('placeholder', 'Enter word begins with ' + String.fromCharCode(currentChar));
         inRoundFlag = true;

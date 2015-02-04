@@ -32,7 +32,7 @@ var minScore = 0, playerHighScore = 0;
         if ((settings.gamePlay === 'multiplayer-random' && typeof settings.playerName === 'string' && settings.playerName.length >= 3) || settings.gamePlay !== 'multiplayer-random') {
             $('#name-player-tooltip').tooltipster('hide');
             $.post('/setting', settings, function () {
-                $(location).attr('href', 'http://wordmatch.org');
+                $(location).attr('href', 'http://wordmatch.org:4100');
             });
         } else if (settings.gamePlay === 'multiplayer-random' && (typeof settings.playerName !== 'string' || settings.playerName < 3)) {
             $('#name-player-tooltip').tooltipster('content', 'Please enter your name with at least 3 letters').tooltipster('show');
@@ -70,6 +70,8 @@ var minScore = 0, playerHighScore = 0;
         if ($.cookie("playerName") !== 'Player') $('#player-name-input').val($.cookie("playerName"));
     }).on('hidden.bs.modal', function () {
         $('#input-name-tooltip').tooltipster('hide');
+        console.log('an may lan day');
+        //socket.emit('continue play', currentRoom, $.cookie('playerName'));
     });
 
     $('.game-settings').on('shown.bs.modal', function () {
@@ -81,13 +83,18 @@ var minScore = 0, playerHighScore = 0;
     // Save name and score
     $('#player-name-input').keyup(function (e) {
         var name = $('#player-name-input').val().trim();
-        if (e.which === 13 && name !== '' /*&& score > minScore*/ && !_.isEmpty(passedWords) && !name.match(/[!"#$%&'()*+,/:;<=>?@\[\]^`{|}~\\]/g)) {
-            console.log(passedWords);
-            updateScoreBoard({name: $('<div/>').text(name).html(), score: score, passedWords: passedWords, ownPassedWords: ownPassedWords || null});
+        if (e.which === 13 && name !== '' /*&& score > minScore*/ && !_.isEmpty(ownPassedWords) && !name.match(/[!"#$%&'()*+,/:;<=>?@\[\]^`{|}~\\]/g)) {
+            console.log(ownPassedWords);
+            updateScoreBoard({
+                name: $('<div/>').text(name).html(),
+                score: score,
+                passedWords: passedWords || null,
+                ownPassedWords: ownPassedWords
+            });
             $.cookie("playerName", name);
         } else if (e.which === 13 && (name === '' || name.length > 1 || name.match(/[!"#$%&'()*+,/:;<=>?@\[\]^`{|}~\\]/g))) {
             $('#input-name-tooltip').tooltipster('content', 'Your name must be as least 2 characters and contains no special character: !"#$%&\'()*+,/:;<=>?@\[\]^`{|}~\\').tooltipster('show');
-        } else if (e.which === 13 && (score <= minScore || _.isEmpty(passedWords))) {
+        } else if (e.which === 13 && (score <= minScore || _.isEmpty(ownPassedWords))) {
             $('#input-name-tooltip').tooltipster('content', 'Reach score higher than ' + minScore + ' then enter your name to submit').tooltipster('show');
         } else {
             $('#input-name-tooltip').tooltipster('hide');
